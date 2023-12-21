@@ -1,0 +1,24 @@
+# General
+*.log
+*.pyc
+*.pyo
+*.db
+*.sqlite3
+__pycache__/
+
+# Django
+/db.sqlite3
+/static
+/media
+
+# Virtual Environment
+venv/
+.env
+
+# IDE Specific (e.g., for VSCode, PyCharm)
+.vscode/
+.idea/
+
+# Misc
+.DS_Store
+curls.md
