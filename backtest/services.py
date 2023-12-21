@@ -1,35 +1,39 @@
-from rest_framework import viewsets
-from .models import Backtest, SummaryStats, Trade, EquityData, Signal, PriceData
-from .serializers import (BacktestSerializer, SummaryStatsSerializer, TradeSerializer, 
-                          EquityDataSerializer, SignalSerializer, PriceDataSerializer,  BacktestListSerializer)
+from django.db import transaction
+from .models import Backtest, SummaryStats, Trade, EquityData, Signal, PriceData, TradeInstruction
 
-class BacktestViewSet(viewsets.ModelViewSet):
-    queryset = Backtest.objects.all()
-    serializer_class = BacktestSerializer
+def create_backtest(validated_data):
+    with transaction.atomic():
+        # Extract nested data
+        summary_stats_data = validated_data.pop('summary_stats', [])
+        trades_data = validated_data.pop('trades', [])
+        equity_data_data = validated_data.pop('equity_data', [])
+        signals_data = validated_data.pop('signals', [])
+        price_data_data = validated_data.pop('price_data', [])
 
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return BacktestListSerializer
-        
-        return super().get_serializer_class()
-    
-class SummaryStatsViewSet(viewsets.ModelViewSet):
-    queryset = SummaryStats.objects.all()
-    serializer_class = SummaryStatsSerializer
+        # Create the Backtest instance
+        backtest = Backtest.objects.create(**validated_data)
 
-class TradeViewSet(viewsets.ModelViewSet):
-    queryset = Trade.objects.all()
-    serializer_class = TradeSerializer
+        # Nested object creation for SummaryStats
+        for stat_data in summary_stats_data:
+            SummaryStats.objects.create(backtest=backtest, **stat_data)
 
-class EquityDataViewSet(viewsets.ModelViewSet):
-    queryset = EquityData.objects.all()
-    serializer_class = EquityDataSerializer
+        # Nested object creation for Trades
+        for trade_data in trades_data:
+            Trade.objects.create(backtest=backtest, **trade_data)
 
-class SignalViewSet(viewsets.ModelViewSet):
-    queryset = Signal.objects.all()
-    serializer_class = SignalSerializer
+        # Nested object creation for EquityData
+        for equity_data in equity_data_data:
+            EquityData.objects.create(backtest=backtest, **equity_data)
 
-class PriceDataViewSet(viewsets.ModelViewSet):
-    queryset = PriceData.objects.all()
-    serializer_class = PriceDataSerializer
+        # Nested object creation for Signals and their TradeInstructions
+        for signal_data in signals_data:
+            trade_instructions_data = signal_data.pop('trade_instructions', [])
+            signal_instance = Signal.objects.create(backtest=backtest, **signal_data)
+            for ti_data in trade_instructions_data:
+                TradeInstruction.objects.create(signal=signal_instance, **ti_data)
 
+        # Nested object creation for PriceData
+        for price_data in price_data_data:
+            PriceData.objects.create(backtest=backtest, **price_data)
+
+        return backtest
