@@ -1,7 +1,7 @@
 import databento as db
 from enum import Enum
 from decouple import config
-from database import DatabaseClient
+from client import DatabaseClient
 import pandas as pd
 from decouple import config
 
