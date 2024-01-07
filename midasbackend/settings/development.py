@@ -14,3 +14,6 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+# Redirect all non-HTTPS requests to HTTPS (use in production)
+SECURE_SSL_REDIRECT = False

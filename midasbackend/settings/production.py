@@ -17,3 +17,9 @@ CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', cast=Csv())
 DATABASES = {
     'default': dj_database_url.config(default=config('DATABASE_URL'))
 }
+
+# Redirect all non-HTTPS requests to HTTPS (use in production)
+SECURE_SSL_REDIRECT = True
+
+# Set this to the header your proxy server sends when using HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

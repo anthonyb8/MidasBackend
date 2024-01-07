@@ -97,3 +97,28 @@ REST_FRAMEWORK = {
 }
 
 AUTH_USER_MODEL = "account.CustomUser"  #Custom user
+
+# Use HttpOnly flag on session and CSRF cookies
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+
+# Ensure cookies are only sent over HTTPS
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# Set the SameSite attribute of cookies to help mitigate CSRF attacks
+SESSION_COOKIE_SAMESITE = 'Lax'  # Can be 'Strict', 'Lax', or 'None'
+CSRF_COOKIE_SAMESITE = 'Lax'     # Can be 'Strict', 'Lax', or 'None'
+
+CORS_ALLOW_CREDENTIALS = True
+
+# Security Middleware Settings
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'  # To prevent clickjacking
+SECURE_HSTS_SECONDS = 31536000  # Enable HTTP Strict Transport Security (HSTS)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+
+
