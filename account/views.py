@@ -40,7 +40,7 @@ class UserRegistrationView(APIView):
                 return Response({'token': token.key}, status=status.HTTP_200_OK)
             
             # For browser-based clients, set the token in an HttpOnly cookie
-            response = Response(status=status.HTTP_200_OK)
+            response = Response({'message': 'Registration successful'}, status=status.HTTP_200_OK)
             expiration = timezone.now() + timedelta(days=1)  # Set expiration as needed
             response.set_cookie(
                 'auth_token',
@@ -70,7 +70,7 @@ class LoginView(APIView):
                 return Response({'token': token.key}, status=status.HTTP_200_OK)
 
             # For browser-based clients, set the token in an HttpOnly cookie
-            response = Response(status=status.HTTP_200_OK)
+            response = Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
             expiration = timezone.now() + timedelta(days=1)  # Set expiration as needed
             response.set_cookie(
                 'auth_token',
