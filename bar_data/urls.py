@@ -1,12 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import EquityBarDataViewSet, CommodityBarDataViewSet, CryptocurrencyBarDataViewSet
+from .views import BarDataViewSet
 
 router = DefaultRouter()
-router.register(r'equitybardata', EquityBarDataViewSet)
-router.register(r'commoditybardata', CommodityBarDataViewSet)
-router.register(r'cryptocurrencybardata', CryptocurrencyBarDataViewSet)
+router.register(r'bardata', BarDataViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path("", include(router.urls)),
 ]

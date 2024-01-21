@@ -46,8 +46,13 @@ class PriceDataSerializer(serializers.ModelSerializer):
         model = PriceData
         fields = ['symbol', 'timestamp', 'open', 'close', 'high', 'low', 'volume']
 
+class BacktestListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Backtest
+        fields = ['id', 'strategy_name', 'symbols', 'start_date', 'end_date', 'capital', 'strategy_allocation', 'created_at']
+
 class BacktestSerializer(serializers.ModelSerializer):
-    parameters = serializers.JSONField()
+    parameters = BacktestListSerializer(source='*') 
     summary_stats = SummaryStatsSerializer(many=True)
     trades = TradeSerializer(many=True)
     equity_data = EquityDataSerializer(many=True)
@@ -56,12 +61,47 @@ class BacktestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Backtest
-        fields = ['id', 'strategy_name', 'parameters', 'summary_stats', 'trades', 'equity_data', 'signals', 'price_data']
+        fields = ['id', 'parameters','summary_stats', 'trades', 'equity_data', 'signals', 'price_data']
 
     def create(self, validated_data):
+        # Extract parameters from the initial data if available
+        parameters = self.initial_data.get('parameters', {})
+
+        # Map parameters to the respective fields in Backtest model
+        validated_data['strategy_name'] = parameters.get('strategy_name')
+        validated_data['symbols'] = parameters.get('symbols')
+        validated_data['start_date'] = parameters.get('start_date')
+        validated_data['end_date'] = parameters.get('end_date')
+        validated_data['capital'] = parameters.get('capital')
+        validated_data['strategy_allocation'] = parameters.get('strategy_allocation')
+
         return create_backtest(validated_data)
     
-class BacktestListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Backtest
-        fields = ['id', 'strategy_name', 'parameters']
+
+
+
+# class BacktestSerializer(serializers.ModelSerializer):
+#     # parameters = serializers.JSONField()
+#     summary_stats = SummaryStatsSerializer(many=True)
+#     trades = TradeSerializer(many=True)
+#     equity_data = EquityDataSerializer(many=True)
+#     signals = SignalSerializer(many=True)
+#     price_data = PriceDataSerializer(many=True)
+
+#     class Meta:
+#         model = Backtest
+#         fields = ['id','summary_stats', 'trades', 'equity_data', 'signals', 'price_data']
+
+#     def create(self, validated_data):
+#         parameters = validated_data.pop('parameters', {})
+
+#         # Individual fields need to be extracted from parameters and added to validated_data
+#         validated_data['strategy_name'] = parameters.get('strategy_name')
+#         validated_data['start_date'] = parameters.get('start_date')
+#         validated_data['end_date'] = parameters.get('end_date')
+#         validated_data['capital'] = parameters.get('capital')
+#         validated_data['strategy_allocation'] = parameters.get('strategy_allocation')
+
+#         # Create the Backtest instance
+#         backtest = Backtest.objects.create(**validated_data)
+#         return backtest

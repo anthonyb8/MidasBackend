@@ -4,17 +4,28 @@ import json
 
 class Backtest(models.Model):
     strategy_name = models.CharField(max_length=255)
-    parameters = models.TextField() 
+    symbols = models.JSONField(default=list)
+    start_date = models.CharField(max_length=25, null=True, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
+    capital = models.FloatField(null=True, blank=True)
+    strategy_allocation = models.FloatField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        if isinstance(self.parameters, dict):
-            self.parameters = json.dumps(self.parameters)
         super().save(*args, **kwargs)
-
+        
     def to_dict(self):
+        parameters = {
+            "strategy_name" :self.strategy_name,
+            "symbols":self.symbols,
+            "start_date": self.start_date,
+            "end_date": self.end_date.isoformat() if self.end_date else None,
+            "capital": self.capital,
+            "strategy_allocation": self.strategy_allocation,
+            "created_at": self.created_at,
+        }
         return {
-            "strategy_name": self.strategy_name,
-            "parameters": json.loads(self.parameters),
+            "parameters": parameters,
             "summary_stats": [stat.to_dict() for stat in self.summary_stats.all()],
             "trades": [trade.to_dict() for trade in self.trades.all()],
             "equity_data": [equity.to_dict() for equity in self.equity_data.all()],
@@ -46,8 +57,8 @@ class Trade(models.Model):
     timestamp = models.DateTimeField()
     symbol = models.CharField(max_length=50)     
     quantity = models.IntegerField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    cost = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=4)
+    cost = models.DecimalField(max_digits=10, decimal_places=4)
     direction = models.CharField(max_length=10)  # Assuming 'direction' is a string like 'buy' or 'sell'
 
 class EquityData(models.Model):

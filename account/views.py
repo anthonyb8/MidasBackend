@@ -9,10 +9,7 @@ from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
-from django.http import HttpResponse
-from django.conf import settings
-from datetime import timedelta
-from django.utils import timezone
+
 
 class UserRegistrationView(APIView):
     permission_classes = [AllowAny]  # This line allows unauthenticated access
@@ -34,23 +31,8 @@ class UserRegistrationView(APIView):
             # Create a token for the new user
             token, created = Token.objects.get_or_create(user=user)
 
-            # Check if the request is from a non-browser client
-            if 'return_token' in request.data and request.data['return_token']:
-                # Return the token in the response body for command line tools
-                return Response({'token': token.key}, status=status.HTTP_200_OK)
-            
-            # For browser-based clients, set the token in an HttpOnly cookie
-            response = Response({'message': 'Registration successful'}, status=status.HTTP_200_OK)
-            expiration = timezone.now() + timedelta(days=1)  # Set expiration as needed
-            response.set_cookie(
-                'auth_token',
-                token.key,
-                expires=expiration,
-                httponly=True,
-                secure=settings.SECURE_COOKIES,
-                samesite='Lax'
-            )
-            return response
+            # Return the token in the response body for command line tools
+            return Response({'token': token.key}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class LoginView(APIView):
@@ -63,34 +45,15 @@ class LoginView(APIView):
 
         if user is not None:
             token, created = Token.objects.get_or_create(user=user)
-
-            # Check if the request is from a non-browser client
-            if 'return_token' in request.data and request.data['return_token']:
-                # Return the token in the response body for command line tools
-                return Response({'token': token.key}, status=status.HTTP_200_OK)
-
-            # For browser-based clients, set the token in an HttpOnly cookie
-            response = Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
-            expiration = timezone.now() + timedelta(days=1)  # Set expiration as needed
-            response.set_cookie(
-                'auth_token',
-                token.key,
-                expires=expiration,
-                httponly=True,
-                secure=settings.SECURE_COOKIES,
-                samesite='Lax'
-            )
-            return response
-
+            return Response({'token': token.key}, status=status.HTTP_200_OK)
         return Response({'error': 'Invalid Credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 class LogoutView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        # Clear the HttpOnly cookie
-        response = Response(status=status.HTTP_200_OK)
-        response.delete_cookie('auth_token', secure=settings.SECURE_COOKIES, httponly=True, samesite='Lax')
-
-        return response
+        # Delete the token to log the user out
+        request.user.auth_token.delete()
+        return Response(status=status.HTTP_200_OK)

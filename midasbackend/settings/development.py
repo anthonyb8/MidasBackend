@@ -17,3 +17,6 @@ DATABASES = {
 
 # Redirect all non-HTTPS requests to HTTPS (use in production)
 SECURE_SSL_REDIRECT = False
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = False

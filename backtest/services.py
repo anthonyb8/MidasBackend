@@ -3,14 +3,16 @@ from .models import Backtest, SummaryStats, Trade, EquityData, Signal, PriceData
 
 def create_backtest(validated_data):
     with transaction.atomic():
-        # Extract nested data
+        # Create the Backtest instance
+        # backtest = Backtest.objects.create(**validated_data)
         summary_stats_data = validated_data.pop('summary_stats', [])
         trades_data = validated_data.pop('trades', [])
         equity_data_data = validated_data.pop('equity_data', [])
         signals_data = validated_data.pop('signals', [])
         price_data_data = validated_data.pop('price_data', [])
 
-        # Create the Backtest instance
+
+        # # Create the Backtest instance
         backtest = Backtest.objects.create(**validated_data)
 
         # Nested object creation for SummaryStats

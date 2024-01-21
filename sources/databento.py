@@ -1,12 +1,13 @@
 import databento as db
 from enum import Enum
 from decouple import config
-from client import DatabaseClient
+from client import DatabaseClient, SecurityType, Exchange,Indsutry, Currency, ContractUnits
 import pandas as pd
 from decouple import config
+import datetime
 
-DATABASE_KEY = config('MIDAS_API_KEY')
-DATABASE_URL = config('MIDAS_URL')
+DATABASE_KEY = config('LOCAL_API_KEY')
+DATABASE_URL = config('LOCAL_URL')
 
 class Schemas(Enum):
     MBO='mbo'               # Market by order, full order book, tick data
@@ -34,7 +35,7 @@ class Datasets(Enum):
     OPRA='OPRA.PILLAR'               # Options data. Consolidated last sale, exchange BBO and national BBO across all US equity options exchanges
     DATABENTOEQUITIES='DBEQ.BASIC'   # A consolidation of US equities prop feeds that’s free to license for all use cases. 
     
-class DBClientManager:
+class DatabentoClient:
     def __init__(self, symbols:list, schema:Schemas,dataset:Datasets,stype:Symbology, start_date=None, end_date=None):
         self.symbols=symbols
         self.schema=schema.value
@@ -87,8 +88,10 @@ class DBClientManager:
                 dataset=self.dataset,
                 symbols=self.symbols,
                 schema=self.schema,
+                stype_in=self.stype,
                 start=self.start_date,
-                end=self.end_date,
+                end=self.end_date
+
             )
 
             # Convert to DataFrame
@@ -143,6 +146,7 @@ class DBClientManager:
             schema=self.schema,
             start=self.start_date,
             end=self.end_date,
+            stype_in=self.stype
         )
 
         return cost
@@ -151,26 +155,84 @@ class DBClientManager:
         """TODO : Add live feed later. """
         self.live_client = db.Live(config('DATABENTO_API_KEY'))
 
-
 if __name__ == "__main__":
-    start_date = '2023-01-01'
-    end_date = '2023-03-01'
+    # Initialize the database client
+    database = DatabaseClient(DATABASE_KEY,DATABASE_URL)  # Adjust URL if not running locally
+    start_date = "2023-07-15"
+    end_date="2023-08-15"
+
+    # -- Get Databento Equtiy Data --
+    symbols = ['AAPL', 'MSFT']
     schema = Schemas.OHLCV_1d
     dataset = Datasets.NASDAQ
     stype = Symbology.RAWSYMBOL
-    symbols = ['AAPL', 'MSFT']
 
-    # Initialize the database client
-    database = DatabaseClient(DATABASE_KEY,DATABASE_URL)  # Adjust URL if not running locally
+    # -- Get Databento Continuous Future Data by Open Interest --
+    # schema = Schemas.OHLCV_1d
+    # dataset = Datasets.CME
+    # stype = Symbology.CONTINUOSCONTRACT
+    # symbols = ["HG.n.0"] # 'n' Will rank the expirations by the open interest at the previous day's close
+
+    # -- Get Databento Future Data by Contract Symbol --
+    # schema = Schemas.OHLCV_1d
+    # dataset = Datasets.CME
+    # stype = Symbology.RAWSYMBOL
+    # symbols = ["ZCH4"] 
 
     # Check and create assets if they don't exist
-    for symbol in symbols:
-        if not database.get_asset_by_symbol(symbol):
-            database.create_asset(symbol=symbol, asset_type="equity")
+    # for symbol in symbols:
+    #     if not database.get_asset_by_symbol(symbol):
+    #         database.create_asset(symbol=symbol, asset_type="equity")
+
 
     # Databento client
-    client = DBClientManager(symbols, schema, dataset, stype, start_date, end_date)
+    client = DatabentoClient(symbols, schema, dataset, stype, start_date, end_date)
     data = client.get_data()
-    
+
     # Database client
     response = database.create_bulk_price_data(data)
+    print(response)
+
+
+# -- Create Equity --
+# AAPL = {
+#     'symbol':'AAPL',
+#     'security_type':SecurityType.EQUITY,
+#     'company_name':'Apple Inc.',
+#     'exchange':Exchange.NASDAQ,
+#     'currency':Currency.USD,
+#     'industry':Indsutry.TECHNOLOGY,
+#     'market_cap':100000,
+#     'shares_outstanding':10000000
+#     }
+
+# MSFT = {
+#     'symbol':'MSFT',
+#     'security_type':SecurityType.EQUITY,
+#     'company_name':'Microsoft Inc.',
+#     'exchange':Exchange.NASDAQ,
+#     'currency':Currency.USD,
+#     'industry':Indsutry.TECHNOLOGY,
+#     'market_cap':1,
+#     'shares_outstanding':1
+#     }
+
+# database.create_equity(**MSFT)
+
+
+
+# -- Create Future -- 
+# HG_n_0 = {
+#     'symbol':'HG.n.0',
+#     'security_type':SecurityType.FUTURE,
+#     'product_code':'HG',
+#     'product_name':'Copper',
+#     'exchange':Exchange.CME,
+#     'currency':Currency.USD,
+#     'contract_size':25000,
+#     'contract_units':ContractUnits.POUNDS,
+#     'tick_size':0.0005,
+#     'min_price_fluctuation':12.50,
+#     'continuous':True
+#     }
+# database.create_future(**HG_n_0)

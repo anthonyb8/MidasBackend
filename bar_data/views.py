@@ -2,14 +2,15 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.db import transaction
-from .models import EquityBarData, CommodityBarData, CryptocurrencyBarData
-from .serializers import EquityBarDataSerializer, CommodityBarDataSerializer, CryptocurrencyBarDataSerializer
+from django.db import IntegrityError
+from .models import BarData
+from .serializers import BarDataSerializer
 from assets.models import Asset
 import datetime
 
-class EquityBarDataViewSet(viewsets.ModelViewSet):
-    queryset = EquityBarData.objects.all()
-    serializer_class = EquityBarDataSerializer
+class BarDataViewSet(viewsets.ModelViewSet):
+    queryset = BarData.objects.all()
+    serializer_class = BarDataSerializer
 
     @action(methods=['post'], detail=False)
     def bulk_create(self, request, *args, **kwargs):
@@ -18,25 +19,39 @@ class EquityBarDataViewSet(viewsets.ModelViewSet):
         if not isinstance(equity_data_list, list):
             return Response({'error': 'Input data should be a list'}, status=status.HTTP_400_BAD_REQUEST)
 
-        created_objects = []
+        created_or_updated_objects = []
+        errors = []
 
-        with transaction.atomic():
-            for equity_data in equity_data_list:
-                symbol = equity_data.get('symbol')
-                if not symbol:
-                    return Response({'error': 'symbol is required for each item'}, status=status.HTTP_400_BAD_REQUEST)
+        for equity_data in equity_data_list:
+            try:
+                with transaction.atomic():
+                    symbol = equity_data.get('symbol')
+                    if not symbol:
+                        errors.append({'error': 'Symbol is required for each item'})
+                        continue
 
-                try:
                     asset = Asset.objects.get(symbol=symbol)
-                except Asset.DoesNotExist:
-                    return Response({'error': f'Asset not found for symbol {symbol}'}, status=status.HTTP_404_NOT_FOUND)
+                    defaults = equity_data.copy()
+                    defaults.pop('symbol', None)  # Remove non-model fields if necessary
 
-                equity_data['asset'] = asset
-                serializer = self.get_serializer(data=equity_data)
-                serializer.is_valid(raise_exception=True)
-                created_objects.append(serializer.save())
+                    obj, created = BarData.objects.update_or_create(
+                        asset=asset, 
+                        timestamp=equity_data.get('timestamp'), 
+                        defaults=defaults
+                    )
+                    created_or_updated_objects.append(obj)
 
-        return Response(self.get_serializer(created_objects, many=True).data, status=status.HTTP_201_CREATED)
+            except IntegrityError as e:
+                errors.append({'error': str(e)})
+                continue
+            except Exception as e:
+                errors.append({'error': str(e)})
+                continue
+
+        return Response({
+            'created_or_updated': self.get_serializer(created_or_updated_objects, many=True).data,
+            'errors': errors
+        }, status=status.HTTP_201_CREATED)
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -59,10 +74,3 @@ class EquityBarDataViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-class CommodityBarDataViewSet(viewsets.ModelViewSet):
-    queryset = CommodityBarData.objects.all()
-    serializer_class = CommodityBarDataSerializer
-
-class CryptocurrencyBarDataViewSet(viewsets.ModelViewSet):
-    queryset = CryptocurrencyBarData.objects.all()
-    serializer_class = CryptocurrencyBarDataSerializer
