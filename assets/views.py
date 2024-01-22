@@ -50,15 +50,17 @@ class EquityViewSet(viewsets.ModelViewSet):
         except Exception as e:
             # Log the exception for debugging
             logger.error(f"Error in perform_create: {str(e)}")
-            # Return a custom error message
-            return Response({"error": "Failed to create equity. Please check your data."}, status=status.HTTP_400_BAD_REQUEST)
+            # Raise an APIException with a custom message
+            raise APIException("Failed to create equity. Please check your data.")
 
     def perform_update(self, serializer):
         try:
             serializer.save()
         except Exception as e:
             logger.error(f"Error in perform_update: {str(e)}")
-            return Response({"error": "Failed to update equity. Please check your data."}, status=status.HTTP_400_BAD_REQUEST)
+            # Raise an APIException with a custom message
+            raise APIException("Failed to update equity. Please check your data.")
+
 
 class FutureViewSet(viewsets.ModelViewSet):
     queryset = Future.objects.all()
