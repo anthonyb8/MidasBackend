@@ -52,7 +52,7 @@ class FutureSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Future
-        fields = ['asset_data','product_code','product_name', 'exchange','currency','contract_size','contract_units','tick_size','min_price_fluctuation','created_at','updated_at']
+        fields = ['asset_data','product_code','product_name', 'exchange','currency','contract_size','contract_units','tick_size','min_price_fluctuation', 'continuous','created_at','updated_at']
 
     def create(self, validated_data):
         asset_data = validated_data.pop('asset_data')
