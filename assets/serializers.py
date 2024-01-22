@@ -1,5 +1,9 @@
 from rest_framework import serializers
 from .models import Asset, Equity, Cryptocurrency, Future, Option
+from rest_framework.exceptions import APIException
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AssetWriteSerializer(serializers.ModelSerializer):
     class Meta:
@@ -15,10 +19,16 @@ class EquitySerializer(serializers.ModelSerializer):
         fields = ['asset_data', 'company_name', 'exchange', 'currency', 'industry', 'market_cap', 'shares_outstanding', 'created_at', 'updated_at']
 
     def create(self, validated_data):
-        asset_data = validated_data.pop('asset_data')
-        asset = Asset.objects.create(**asset_data)
-        equity = Equity.objects.create(asset=asset, **validated_data)
-        return equity
+        try:
+            asset_data = validated_data.pop('asset_data')
+            asset = Asset.objects.create(**asset_data)
+            equity = Equity.objects.create(asset=asset, **validated_data)
+            return equity
+        except Exception as e:
+            # Log the exception for debugging
+            logger.error(f"Error in perform_create: {str(e)}")
+            # Raise an APIException with a custom message
+            raise APIException("Failed to create equity. Please check your data.")
 
     def update(self, instance, validated_data):
         asset_data = validated_data.pop('asset_data', None)
