@@ -5,6 +5,10 @@ from .models import Asset, Equity, Cryptocurrency, Option, Future
 from .serializers import AssetReadSerializer, AssetWriteSerializer, EquitySerializer,  CryptocurrencySerializer, FutureSerializer, OptionSerializer
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import APIException
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class AssetViewSet(viewsets.ModelViewSet):
@@ -18,9 +22,15 @@ class AssetViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         symbol = self.request.query_params.get('symbol')
-        if symbol:
-            return queryset.filter(symbol__iexact=symbol.upper())
-        return queryset
+        try:
+            if symbol:
+                return queryset.filter(symbol__iexact=symbol.upper())
+            return queryset
+        except Exception as e:
+            # Log the exception for debugging
+            logger.error(f"Error in get_queryset: {str(e)}")
+            # Return a generic server error response
+            raise APIException(detail="An error occurred while retrieving assets.", code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def perform_create(self, serializer):
         raise PermissionDenied(detail="Direct creation of Asset is not allowed.")
@@ -35,12 +45,21 @@ class EquityViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # This method is called when saving a new object instance.
         # You can add custom creation logic here if needed.
-        serializer.save()
+        try:
+            serializer.save()
+        except Exception as e:
+            # Log the exception for debugging
+            logger.error(f"Error in perform_create: {str(e)}")
+            # Return a custom error message
+            return Response({"error": "Failed to create equity. Please check your data."}, status=status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
-        # Custom update logic, similar to perform_create
-        serializer.save()
-  
+        try:
+            serializer.save()
+        except Exception as e:
+            logger.error(f"Error in perform_update: {str(e)}")
+            return Response({"error": "Failed to update equity. Please check your data."}, status=status.HTTP_400_BAD_REQUEST)
+
 class FutureViewSet(viewsets.ModelViewSet):
     queryset = Future.objects.all()
     serializer_class = FutureSerializer
