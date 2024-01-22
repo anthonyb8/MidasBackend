@@ -6,8 +6,8 @@ import pandas as pd
 from decouple import config
 import datetime
 
-DATABASE_KEY = config('LOCAL_API_KEY')
-DATABASE_URL = config('LOCAL_URL')
+DATABASE_KEY = config('MIDAS_API_KEY')
+DATABASE_URL = config('MIDAS_URL')
 
 class Schemas(Enum):
     MBO='mbo'               # Market by order, full order book, tick data
@@ -158,14 +158,14 @@ class DatabentoClient:
 if __name__ == "__main__":
     # Initialize the database client
     database = DatabaseClient(DATABASE_KEY,DATABASE_URL)  # Adjust URL if not running locally
-    start_date = "2023-07-15"
-    end_date="2023-08-15"
+    # start_date = "2023-07-15"
+    # end_date="2023-08-15"
 
-    # -- Get Databento Equtiy Data --
-    symbols = ['AAPL', 'MSFT']
-    schema = Schemas.OHLCV_1d
-    dataset = Datasets.NASDAQ
-    stype = Symbology.RAWSYMBOL
+    # # -- Get Databento Equtiy Data --
+    # symbols = ['AAPL', 'MSFT']
+    # schema = Schemas.OHLCV_1d
+    # dataset = Datasets.NASDAQ
+    # stype = Symbology.RAWSYMBOL
 
     # -- Get Databento Continuous Future Data by Open Interest --
     # schema = Schemas.OHLCV_1d
@@ -186,53 +186,84 @@ if __name__ == "__main__":
 
 
     # Databento client
-    client = DatabentoClient(symbols, schema, dataset, stype, start_date, end_date)
-    data = client.get_data()
+    # client = DatabentoClient(symbols, schema, dataset, stype, start_date, end_date)
+    # data = client.get_data()
 
-    # Database client
-    response = database.create_bulk_price_data(data)
-    print(response)
-
-
-# -- Create Equity --
-# AAPL = {
-#     'symbol':'AAPL',
-#     'security_type':SecurityType.EQUITY,
-#     'company_name':'Apple Inc.',
-#     'exchange':Exchange.NASDAQ,
-#     'currency':Currency.USD,
-#     'industry':Indsutry.TECHNOLOGY,
-#     'market_cap':100000,
-#     'shares_outstanding':10000000
-#     }
-
-# MSFT = {
-#     'symbol':'MSFT',
-#     'security_type':SecurityType.EQUITY,
-#     'company_name':'Microsoft Inc.',
-#     'exchange':Exchange.NASDAQ,
-#     'currency':Currency.USD,
-#     'industry':Indsutry.TECHNOLOGY,
-#     'market_cap':1,
-#     'shares_outstanding':1
-#     }
-
-# database.create_equity(**MSFT)
+    # # Database client
+    # response = database.create_bulk_price_data(data)
+    # print(response)
 
 
+    # -- Create Equity --
+    # AAPL = {
+    #     'symbol':'AAPL',
+    #     'security_type':SecurityType.EQUITY,
+    #     'company_name':'Apple Inc.',
+    #     'exchange':Exchange.NASDAQ,
+    #     'currency':Currency.USD,
+    #     'industry':Indsutry.TECHNOLOGY,
+    #     'market_cap':100000,
+    #     'shares_outstanding':10000000
+    #     }
 
-# -- Create Future -- 
-# HG_n_0 = {
-#     'symbol':'HG.n.0',
-#     'security_type':SecurityType.FUTURE,
-#     'product_code':'HG',
-#     'product_name':'Copper',
-#     'exchange':Exchange.CME,
-#     'currency':Currency.USD,
-#     'contract_size':25000,
-#     'contract_units':ContractUnits.POUNDS,
-#     'tick_size':0.0005,
-#     'min_price_fluctuation':12.50,
-#     'continuous':True
-#     }
-# database.create_future(**HG_n_0)
+    # database.create_equity(**AAPL)
+
+    # MSFT = {
+    #     'symbol':'MSFT',
+    #     'security_type':SecurityType.EQUITY,
+    #     'company_name':'Microsoft Inc.',
+    #     'exchange':Exchange.NASDAQ,
+    #     'currency':Currency.USD,
+    #     'industry':Indsutry.TECHNOLOGY,
+    #     'market_cap':1,
+    #     'shares_outstanding':1
+    #     }
+
+
+    # -- Create Future -- 
+    HE_n_0 = {
+        'symbol':'HE.n.0',
+        'security_type':SecurityType.FUTURE,
+        'product_code':'HE',
+        'product_name':'Lean Hogs',
+        'exchange':Exchange.CME,
+        'currency':Currency.USD,
+        'contract_size':40000,
+        'contract_units':ContractUnits.POUNDS,
+        'tick_size':0.00025,
+        'min_price_fluctuation':10.00,
+        'continuous':True
+        }
+    # database.create_future(**HE_n_0)
+
+
+    ZC_n_0 = {
+        'symbol':'ZC.n.0',
+        'security_type':SecurityType.FUTURE,
+        'product_code':'ZC',
+        'product_name':'Corn',
+        'exchange':Exchange.CME,
+        'currency':Currency.USD,
+        'contract_size':5000,
+        'contract_units':ContractUnits.BUSHELS,
+        'tick_size':0.0025,
+        'min_price_fluctuation':12.50,
+        'continuous':True
+        }
+    database.create_future(**ZC_n_0)
+
+
+    ZM_n_0 = {
+        'symbol':'ZM.n.0',
+        'security_type':SecurityType.FUTURE,
+        'product_code':'ZM',
+        'product_name':'Soybean Meal',
+        'exchange':Exchange.CME,
+        'currency':Currency.USD,
+        'contract_size':100,
+        'contract_units':ContractUnits.SHORT_TON,
+        'tick_size':0.10,
+        'min_price_fluctuation':10.00,
+        'continuous':True
+        }
+    database.create_future(**ZM_n_0)

@@ -41,6 +41,7 @@ class ContractUnits(Enum):
     POUNDS='Pounds'
     TROY_OUNCE='Troy Ounce'
     METRIC_TON='Metric Ton'
+    SHORT_TON='Short Ton'
 
 class DatabaseClient:
     def __init__(self, api_key:str, api_url:str ='http://127.0.0.1:8000'):
