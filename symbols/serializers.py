@@ -32,8 +32,8 @@ class BenchmarkSerializer(serializers.ModelSerializer):
         write_only=True
     )
     
-    # asset_class_name = serializers.SerializerMethodField()
-    # currency_code = serializers.SerializerMethodField()
+    asset_class_name = serializers.SerializerMethodField()
+    currency_code = serializers.SerializerMethodField()
     symbol_data = SymbolWriteSerializer(write_only=True)
 
     class Meta:
@@ -48,17 +48,24 @@ class BenchmarkSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         try:
+            # Create associated symbol
             symbol_data = validated_data.pop('symbol_data')
-            # Directly use the instances resolved by DRF
             symbol = Symbol.objects.create(**symbol_data)
+            logger.info(f"Symbol sucessfully created: {symbol}")
+            
+            # Create benchmark and link to symbol
             benchmark = Benchmark.objects.create(ticker=symbol, **validated_data)
+            logger.info(f"Benchmark sucessfully created: {benchmark}")
+            
             return benchmark
-        except AssetClass.DoesNotExist:
+        except AssetClass.DoesNotExist as e:
+            logger.info(e)
             raise APIException("The specified asset class does not exist.")
         except Currency.DoesNotExist:
+            logger.info(e)
             raise APIException("The specified currency does not exist.")
         except Exception as e:
-            # Log or handle the generic exception
+            logger.info(f"Failed to create benchmark: {str(e)}")
             raise APIException(f"Failed to create benchmark: {str(e)}")
 
     def update(self, instance, validated_data):
