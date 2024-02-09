@@ -158,20 +158,14 @@ class DatabentoClient:
 if __name__ == "__main__":
     # Initialize the database client
     database = DatabaseClient(DATABASE_KEY,DATABASE_URL)  # Adjust URL if not running locally
-    # start_date = "2023-07-15"
-    # end_date="2023-08-15"
+    start_date = "2018-05-01"
+    end_date="2024-01-19"
 
     # # -- Get Databento Equtiy Data --
     # symbols = ['AAPL', 'MSFT']
-    # schema = Schemas.OHLCV_1d
+    # schema = Schemas.OHLCV_1h
     # dataset = Datasets.NASDAQ
     # stype = Symbology.RAWSYMBOL
-
-    # -- Get Databento Continuous Future Data by Open Interest --
-    # schema = Schemas.OHLCV_1d
-    # dataset = Datasets.CME
-    # stype = Symbology.CONTINUOSCONTRACT
-    # symbols = ["HG.n.0"] # 'n' Will rank the expirations by the open interest at the previous day's close
 
     # -- Get Databento Future Data by Contract Symbol --
     # schema = Schemas.OHLCV_1d
@@ -179,19 +173,26 @@ if __name__ == "__main__":
     # stype = Symbology.RAWSYMBOL
     # symbols = ["ZCH4"] 
 
+    # -- Get Databento Continuous Future Data by Open Interest --
+    symbols = ['HE.n.0', 'ZC.n.0', 'ZM.n.0'] # 'n' Will rank the expirations by the open interest at the previous day's close
+    schema = Schemas.OHLCV_1d
+    dataset = Datasets.CME
+    stype = Symbology.CONTINUOSCONTRACT
+
     # Check and create assets if they don't exist
-    # for symbol in symbols:
-    #     if not database.get_asset_by_symbol(symbol):
-    #         database.create_asset(symbol=symbol, asset_type="equity")
+    for symbol in symbols:
+        if not database.get_asset_by_symbol(symbol):
+            raise Exception(f"{symbol} not present in database.")
+        
 
 
     # Databento client
-    # client = DatabentoClient(symbols, schema, dataset, stype, start_date, end_date)
-    # data = client.get_data()
+    client = DatabentoClient(symbols, schema, dataset, stype, start_date, end_date)
+    data = client.get_data()
 
     # # Database client
-    # response = database.create_bulk_price_data(data)
-    # print(response)
+    response = database.create_bulk_price_data(data)
+    print(response)
 
 
     # -- Create Equity --
@@ -221,49 +222,49 @@ if __name__ == "__main__":
 
 
     # -- Create Future -- 
-    HE_n_0 = {
-        'symbol':'HE.n.0',
-        'security_type':SecurityType.FUTURE,
-        'product_code':'HE',
-        'product_name':'Lean Hogs',
-        'exchange':Exchange.CME,
-        'currency':Currency.USD,
-        'contract_size':40000,
-        'contract_units':ContractUnits.POUNDS,
-        'tick_size':0.00025,
-        'min_price_fluctuation':10.00,
-        'continuous':True
-        }
-    # database.create_future(**HE_n_0)
+    # HE_n_0 = {
+    #     'symbol':'HE.n.0',
+    #     'security_type':SecurityType.FUTURE,
+    #     'product_code':'HE',
+    #     'product_name':'Lean Hogs',
+    #     'exchange':Exchange.CME,
+    #     'currency':Currency.USD,
+    #     'contract_size':40000,
+    #     'contract_units':ContractUnits.POUNDS,
+    #     'tick_size':0.00025,
+    #     'min_price_fluctuation':10.00,
+    #     'continuous':True
+    #     }
+    # # database.create_future(**HE_n_0)
 
 
-    ZC_n_0 = {
-        'symbol':'ZC.n.0',
-        'security_type':SecurityType.FUTURE,
-        'product_code':'ZC',
-        'product_name':'Corn',
-        'exchange':Exchange.CME,
-        'currency':Currency.USD,
-        'contract_size':5000,
-        'contract_units':ContractUnits.BUSHELS,
-        'tick_size':0.0025,
-        'min_price_fluctuation':12.50,
-        'continuous':True
-        }
-    database.create_future(**ZC_n_0)
+    # ZC_n_0 = {
+    #     'symbol':'ZC.n.0',
+    #     'security_type':SecurityType.FUTURE,
+    #     'product_code':'ZC',
+    #     'product_name':'Corn',
+    #     'exchange':Exchange.CME,
+    #     'currency':Currency.USD,
+    #     'contract_size':5000,
+    #     'contract_units':ContractUnits.BUSHELS,
+    #     'tick_size':0.0025,
+    #     'min_price_fluctuation':12.50,
+    #     'continuous':True
+    #     }
+    # database.create_future(**ZC_n_0)
 
 
-    ZM_n_0 = {
-        'symbol':'ZM.n.0',
-        'security_type':SecurityType.FUTURE,
-        'product_code':'ZM',
-        'product_name':'Soybean Meal',
-        'exchange':Exchange.CME,
-        'currency':Currency.USD,
-        'contract_size':100,
-        'contract_units':ContractUnits.SHORT_TON,
-        'tick_size':0.10,
-        'min_price_fluctuation':10.00,
-        'continuous':True
-        }
-    database.create_future(**ZM_n_0)
+    # ZM_n_0 = {
+    #     'symbol':'ZM.n.0',
+    #     'security_type':SecurityType.FUTURE,
+    #     'product_code':'ZM',
+    #     'product_name':'Soybean Meal',
+    #     'exchange':Exchange.CME,
+    #     'currency':Currency.USD,
+    #     'contract_size':100,
+    #     'contract_units':ContractUnits.SHORT_TON,
+    #     'tick_size':0.10,
+    #     'min_price_fluctuation':10.00,
+    #     'continuous':True
+    #     }
+    # database.create_future(**ZM_n_0)

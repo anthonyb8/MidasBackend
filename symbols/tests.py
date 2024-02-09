@@ -2,14 +2,14 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from django.test import TestCase
 from django.urls import reverse
-from .models import Asset,Equity, Commodity, Future, Cryptocurrency, Option
+# from .models import Symbol, Equity, Commodity, Future, Cryptocurrency, Option
 from rest_framework.test import APIClient
 from django.test import TestCase
-from .models import Asset, Equity
+from .models import Symbol, Equity
 from rest_framework.authtoken.models import Token
 from account.views import CustomUser
 
-class AssetAPITests(TestCase):
+class SymbolAPITests(TestCase):
     USER = {
             'username': 'username',
             'email': 'email@example.com',
@@ -22,7 +22,7 @@ class AssetAPITests(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {response.data["token"]}')
 
         self.data = {
-            "asset_data": {
+            "symbol_data": {
                 "symbol": "AAPL",
                 "security_type": "EQUITY"
             },
@@ -42,30 +42,30 @@ class AssetAPITests(TestCase):
         self.assertEqual(response.status_code, 201)
 
 
-    def test_get_all_assets(self):
-        response = self.client.get('/api/assets/', format='json')
+    def test_get_all_symbols(self):
+        response = self.client.get('/api/symbols/', format='json')
         self.assertEqual(response.status_code, 200)
         # Additional assertions can be made based on the expected response structure
 
-    def test_get_asset_by_id(self):
-        # Assuming an asset with ID 1 exists
-        response = self.client.get('/api/assets/1/', format='json')
+    def test_get_symbol_by_id(self):
+        # Assuming an symbol with ID 1 exists
+        response = self.client.get('/api/symbols/1/', format='json')
         self.assertEqual(response.status_code, 200)
-        # Additional assertions based on the expected asset details
+        # Additional assertions based on the expected symbol details
 
-    def test_get_asset_by_symbol(self):
-        # Assuming an asset with symbol 'AAPL' exists
-        response = self.client.get('/api/assets/?symbol=AAPL', format='json')
+    def test_get_symbol_by_symbol(self):
+        # Assuming an symbol with symbol 'AAPL' exists
+        response = self.client.get('/api/symbols/?symbol=AAPL', format='json')
         self.assertEqual(response.status_code, 200)
-        # Additional assertions based on the expected asset details
+        # Additional assertions based on the expected symbol details
 
-    def test_delete_asset(self):
-        # Create an asset to be deleted or assume one exists
-        # For example, if an asset with ID 4 exists
-        response = self.client.delete('/api/assets/4/', format='json')
+    def test_delete_symbol(self):
+        # Create an symbol to be deleted or assume one exists
+        # For example, if an symbol with ID 4 exists
+        response = self.client.delete('/api/symbols/4/', format='json')
         self.assertEqual(response.status_code, 204)  # No Content on successful deletion
-        # You might also want to check if the asset is indeed deleted
-        check_response = self.client.get('/api/assets/4/', format='json')
+        # You might also want to check if the symbol is indeed deleted
+        check_response = self.client.get('/api/symbols/4/', format='json')
         self.assertEqual(check_response.status_code, 404)
 
 # class EquityAPITests(TestCase):
@@ -82,7 +82,7 @@ class AssetAPITests(TestCase):
 #         self.client.credentials(HTTP_AUTHORIZATION=f'Token {response.data["token"]}')
 
 #         self.data = {
-#             "asset_data": {
+#             "symbol_data": {
 #                 "symbol": "AAPL",
 #                 "security_type": "UNDERLYING"
 #             },
@@ -105,7 +105,7 @@ class AssetAPITests(TestCase):
 #     def test_create_equity_missing_data(self):
 #         data = {
 #             # Missing some required fields
-#             "asset_data": {
+#             "symbol_data": {
 #                 "symbol": "AAPL"
 #             },
 #             "company_name": "Apple Inc."
@@ -166,7 +166,7 @@ class FutureAPITests(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {response.data["token"]}')
 
         self.data = {
-            "asset_data": {
+            "symbol_data": {
                 "symbol": "ES.n.0",
                 "security_type": "FUTURE"
             },
@@ -189,7 +189,7 @@ class FutureAPITests(TestCase):
     def test_create_equity_missing_data(self):
         data = {
             # Missing some required fields
-            "asset_data": {
+            "symbol_data": {
                 "symbol": "AAPL"
             },
             "company_name": "Apple Inc."
@@ -250,7 +250,7 @@ class OptionAPITests(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {response.data["token"]}')
 
         self.data = {
-            "asset_data": {
+            "symbol_data": {
                 "symbol": "AAPL",
                 "security_type": "UNDERLYING"
             },
@@ -273,7 +273,7 @@ class OptionAPITests(TestCase):
     def test_create_equity_missing_data(self):
         data = {
             # Missing some required fields
-            "asset_data": {
+            "symbol_data": {
                 "symbol": "AAPL"
             },
             "company_name": "Apple Inc."

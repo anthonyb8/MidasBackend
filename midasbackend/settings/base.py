@@ -5,8 +5,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Application definition
 INSTALLED_APPS = [
     'account',
-    'assets',
-    'bar_data',
+    'symbols',
+    'market_data',
     'backtest',
     'rest_framework',
     'rest_framework.authtoken',

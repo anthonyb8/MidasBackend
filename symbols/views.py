@@ -1,8 +1,8 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .models import Asset, Equity, Cryptocurrency, Option, Future
-from .serializers import AssetReadSerializer, AssetWriteSerializer, EquitySerializer,  CryptocurrencySerializer, FutureSerializer, OptionSerializer
+from .models import Symbol, Equity, Cryptocurrency, Option, Future, Benchmark, AssetClass, Currency
+from .serializers import SymbolReadSerializer, SymbolWriteSerializer, EquitySerializer,  CryptocurrencySerializer, FutureSerializer, OptionSerializer, AssetClassSerializer, CurrencySerializer, BenchmarkSerializer
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny
 from rest_framework.exceptions import APIException
@@ -10,33 +10,64 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+class AssetClassViewSet(viewsets.ModelViewSet):
+    queryset = AssetClass.objects.all()
+    serializer_class = AssetClassSerializer
 
-class AssetViewSet(viewsets.ModelViewSet):
-    queryset = Asset.objects.all()
+class CurrencyViewSet(viewsets.ModelViewSet):
+    queryset = Currency.objects.all()
+    serializer_class = CurrencySerializer
+
+class SymbolViewSet(viewsets.ModelViewSet):
+    queryset = Symbol.objects.all()
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
-            return AssetReadSerializer
-        return AssetWriteSerializer
+            return SymbolReadSerializer
+        return SymbolWriteSerializer
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        symbol = self.request.query_params.get('symbol')
+        ticker = self.request.query_params.get('ticker')
         try:
-            if symbol:
-                return queryset.filter(symbol__iexact=symbol.upper())
+            if ticker:
+                # Correctly use the `ticker` field for filtering
+                return queryset.filter(ticker__iexact=ticker)
             return queryset
         except Exception as e:
             # Log the exception for debugging
             logger.error(f"Error in get_queryset: {str(e)}")
             # Return a generic server error response
-            raise APIException(detail="An error occurred while retrieving assets.", code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise APIException(detail="An error occurred while retrieving symbols.", code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def perform_create(self, serializer):
-        raise PermissionDenied(detail="Direct creation of Asset is not allowed.")
+        raise PermissionDenied(detail="Direct creation of Symbol is not allowed.")
 
     def perform_update(self, serializer):
-        raise PermissionDenied(detail="Direct updating of Asset is not allowed.")
+        raise PermissionDenied(detail="Direct updating of Symbol is not allowed.")
+
+class BenchmarkViewSet(viewsets.ModelViewSet):
+    queryset = Benchmark.objects.all()
+    serializer_class = BenchmarkSerializer
+
+    # This method is called when saving a new object instance.
+    # You can add custom creation logic here if needed.
+    def perform_create(self, serializer):
+        try:
+            serializer.save()
+        except Exception as e:
+            # Log the exception for debugging
+            logger.error(f"Error in perform_create: {str(e)}")
+            # Raise an APIException with a custom message
+            raise APIException("Failed to create benchmark. Please check your data.")
+
+    def perform_update(self, serializer):
+        try:
+            serializer.save()
+        except Exception as e:
+            logger.error(f"Error in perform_update: {str(e)}")
+            # Raise an APIException with a custom message
+            raise APIException("Failed to update benchmark. Please check your data.")
 
 class EquityViewSet(viewsets.ModelViewSet):
     queryset = Equity.objects.all()
@@ -60,7 +91,6 @@ class EquityViewSet(viewsets.ModelViewSet):
             logger.error(f"Error in perform_update: {str(e)}")
             # Raise an APIException with a custom message
             raise APIException("Failed to update equity. Please check your data.")
-
 
 class FutureViewSet(viewsets.ModelViewSet):
     queryset = Future.objects.all()

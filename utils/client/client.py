@@ -3,6 +3,7 @@ from typing import List, Dict
 from queue import Queue
 import pandas as pd
 from enum import Enum
+from datetime import datetime, timedelta
 
 class SecurityType(Enum):
     EQUITY = 'EQUITY'
@@ -194,29 +195,70 @@ class DatabaseClient:
         if response.status_code != 201:
             raise ValueError(f"Price data creation failed: {response.text}")
         return response.json()
-
+    
     def create_bulk_price_data(self, bulk_data: List[Dict]):
-        url = f"{self.api_url}/api/bardata/bulk_create/"
-        headers = {'Authorization': f'Token {self.api_key}'}
-        response = requests.post(url, json=bulk_data, headers=headers)
+        batch_size = 400
+        total_batches = len(bulk_data) // batch_size + (1 if len(bulk_data) % batch_size > 0 else 0)
+        all_responses = []
 
-        if response.status_code != 201:
-            raise ValueError(f"Bulk price data creation failed: {response.text}")
-        return response.json()
+        for batch_number in range(total_batches):
+            # Extract the current batch
+            start_index = batch_number * batch_size
+            end_index = start_index + batch_size
+            current_batch = bulk_data[start_index:end_index]
+
+            # Send the batch request
+            url = f"{self.api_url}/api/bardata/bulk_create/"
+            headers = {'Authorization': f'Token {self.api_key}'}
+            response = requests.post(url, json=current_batch, headers=headers)
+
+            if response.status_code != 201:
+                raise ValueError(f"Bulk price data creation failed for batch {batch_number + 1}: {response.text}")
+            
+            all_responses.append(response.json())
+
+        # Aggregate all responses
+        aggregated_response = {
+            'total_batches': total_batches,
+            'batch_responses': all_responses
+        }
+        return aggregated_response
     
     def get_price_data(self, symbols: List[str], start_date: str = None, end_date: str = None):
-        url = f"{self.api_url}/api/bardata/"
-        params = {'symbols': ','.join(symbols)}
-        if start_date:
-            params['start_date'] = start_date
-        if end_date:
-            params['end_date'] = end_date
+        if start_date is None or end_date is None:
+            raise ValueError("Start date and end date must be provided for batching")
 
+        batch_size = 50
+        start = datetime.strptime(start_date, '%Y-%m-%d')
+        end = datetime.strptime(end_date, '%Y-%m-%d')
+
+        current_start = start
+        all_data = []
+
+        while current_start < end:
+            current_end = min(current_start + timedelta(days=batch_size), end)
+            # Adjust the end date to avoid including it in the next batch
+            adjusted_end_date = (current_end - timedelta(days=1)).strftime('%Y-%m-%d') if current_end != end else current_end.strftime('%Y-%m-%d')
+
+            batch_data = self._fetch_batch_data(symbols, current_start.strftime('%Y-%m-%d'), adjusted_end_date)
+            all_data.extend(batch_data)
+            # Set the start of the next batch to the day after the current batch's end
+            current_start = current_end
+        return all_data 
+
+    def _fetch_batch_data(self, symbols, start_date, end_date):
+        url = f"{self.api_url}/api/bardata/"
+        params = {
+            'symbols': ','.join(symbols),
+            'start_date': start_date,
+            'end_date': end_date
+        }
         headers = {'Authorization': f'Token {self.api_key}'}
         response = requests.get(url, params=params, headers=headers)
 
         if response.status_code != 200:
-            raise ValueError(f"Failed to retrieve price data: {response.text}")
+            raise ValueError(f"Failed to retrieve price data for batch {start_date} to {end_date}: {response.text}")
+
         return response.json()
     
     def create_backtest(self, data):
