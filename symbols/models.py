@@ -21,7 +21,7 @@ class Symbol(models.Model):
         ('EQUITY', 'EQUITY'),
         ('FUTURE', 'FUTURE'),
         ('OPTION', 'OPTION'),
-        ('BENCHMARK', 'BENCHMARK'), 
+        ('INDEX', 'INDEX'), 
     )
     ticker = models.CharField(max_length=10, unique=True)
     security_type = models.CharField(max_length=10, choices=SECURITY_TYPES) 
@@ -39,17 +39,18 @@ class Symbol(models.Model):
     def __str__(self):
         return f"Symbol(ticker={self.ticker}, security_type={self.security_type})"
     
-class Benchmark(models.Model):
-    ticker = models.OneToOneField(Symbol, on_delete=models.CASCADE, related_name='benchmark')
-    benchmark_name = models.CharField(max_length=100)  # Increased length for flexibility
-    asset_class = models.ForeignKey(AssetClass, on_delete=models.CASCADE)  # Link to AssetClass model
+class Index(models.Model):
+    symbol = models.OneToOneField(Symbol, on_delete=models.CASCADE, related_name='index')
+    name = models.CharField(max_length=100)  # Increased length for flexibility
     currency = models.ForeignKey(Currency, on_delete=models.SET_NULL, null=True, blank=True)  # Link to Currency model for more detail
+    asset_class = models.ForeignKey(AssetClass, on_delete=models.CASCADE)  # Link to AssetClass model
+    exchange = models.CharField(max_length=50)
 
     def __str__(self):
-        return f"{self.benchmark_name} ({self.ticker.ticker})"
+        return f"{self.name} ({self.symbol.ticker})"
     
 class Equity(models.Model):
-    ticker = models.OneToOneField(Symbol, on_delete=models.CASCADE, related_name='equity')
+    symbol = models.OneToOneField(Symbol, on_delete=models.CASCADE, related_name='equity')
     company_name = models.CharField(max_length=150)
     exchange = models.CharField(max_length=25)
     currency = models.CharField(max_length=3)
@@ -63,7 +64,7 @@ class Equity(models.Model):
         return f"Equity(company_name={self.company_name}, exchange={self.exchange})"
     
 class Future(models.Model):
-    ticker = models.OneToOneField(Symbol, on_delete=models.CASCADE, related_name='future')
+    symbol = models.OneToOneField(Symbol, on_delete=models.CASCADE, related_name='future')
     product_code = models.CharField(max_length=10)  # Example: ZC
     product_name = models.CharField(max_length=50)
     exchange = models.CharField(max_length=25)
@@ -86,7 +87,7 @@ class Future(models.Model):
         return f"Future(symbol={self.symbol}, expiration_date={self.expiration_date})"
     
 class Cryptocurrency(models.Model):
-    ticker = models.OneToOneField(Symbol, on_delete=models.CASCADE, related_name='cryptocurrency')
+    symbol = models.OneToOneField(Symbol, on_delete=models.CASCADE, related_name='cryptocurrency')
     cryptocurrency_name = models.CharField(max_length=50)
     circulating_supply = models.IntegerField(null=True, blank=True)
     market_cap = models.IntegerField(null=True, blank=True)
@@ -100,7 +101,7 @@ class Cryptocurrency(models.Model):
         return f"Cryptocurrency(name={self.cryptocurrency_name})"
     
 class Option(models.Model):
-    ticker = models.OneToOneField(Symbol, on_delete=models.CASCADE, related_name='option')
+    symbol = models.OneToOneField(Symbol, on_delete=models.CASCADE, related_name='option')
     strike_price = models.DecimalField(max_digits=10, decimal_places=2)
     expiration_date = models.DateTimeField()
     option_type = models.CharField(max_length=4)  # 'CALL' or 'PUT'

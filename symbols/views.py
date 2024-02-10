@@ -1,8 +1,8 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .models import Symbol, Equity, Cryptocurrency, Option, Future, Benchmark, AssetClass, Currency
-from .serializers import SymbolReadSerializer, SymbolWriteSerializer, EquitySerializer,  CryptocurrencySerializer, FutureSerializer, OptionSerializer, AssetClassSerializer, CurrencySerializer, BenchmarkSerializer
+from .models import Symbol, Equity, Cryptocurrency, Option, Future, Index, AssetClass, Currency
+from .serializers import SymbolReadSerializer, SymbolWriteSerializer, EquitySerializer,  CryptocurrencySerializer, FutureSerializer, OptionSerializer, AssetClassSerializer, CurrencySerializer, IndexSerializer
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny
 from rest_framework.exceptions import APIException
@@ -46,9 +46,9 @@ class SymbolViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         raise PermissionDenied(detail="Direct updating of Symbol is not allowed.")
 
-class BenchmarkViewSet(viewsets.ModelViewSet):
-    queryset = Benchmark.objects.all()
-    serializer_class = BenchmarkSerializer
+class IndexViewSet(viewsets.ModelViewSet):
+    queryset = Index.objects.all()
+    serializer_class = IndexSerializer
 
     # This method is called when saving a new object instance.
     # You can add custom creation logic here if needed.

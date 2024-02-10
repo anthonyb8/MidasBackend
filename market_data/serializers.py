@@ -1,32 +1,41 @@
 from rest_framework import serializers
+from django.db import transaction
 from .models import BarData
 from symbols.models import Symbol
 
 class BarDataSerializer(serializers.ModelSerializer):
-    ticker = serializers.SlugRelatedField(
+    symbol = serializers.SlugRelatedField(
         queryset=Symbol.objects.all(),
-        slug_field='ticker',  # Assuming 'ticker' is the field on Symbol you want to relate by
-        write_only=False  # Now allowing both read and write
+        slug_field='ticker',
+        write_only=False  # Allowing both read and write
     )
 
     class Meta:
         model = BarData
-        fields = ['id', 'ticker', 'timestamp', 'open', 'close', 'high', 'low', 'volume']
+        fields = ['id', 'symbol', 'timestamp', 'open', 'close', 'high', 'low', 'volume']
 
     def to_representation(self, instance):
         """Modify the representation for read operations to include the ticker."""
         ret = super().to_representation(instance)
-        # Ensure 'ticker' shows the ticker symbol, not the Symbol object ID
-        ret['ticker'] = instance.ticker.ticker
+        # Ensure 'symbol' shows the ticker symbol, not the Symbol object ID
+        ret['symbol'] = instance.symbol.ticker
         return ret
 
     def create(self, validated_data):
-        # 'ticker' field is automatically handled by SlugRelatedField
-        return super().create(validated_data)
+        # Handle bulk create if validated_data is a list
+        if isinstance(validated_data, list):
+            with transaction.atomic():  # Ensures all-or-nothing for bulk operations
+                instances = [BarData(**item) for item in validated_data]
+                return BarData.objects.bulk_create(instances)
+        else:
+            # For single instance creation, just use the standard create
+            return super().create(validated_data)
 
     def update(self, instance, validated_data):
         # 'ticker' field is automatically handled by SlugRelatedField
         return super().update(instance, validated_data)
+
+
 
 
 
@@ -40,33 +49,29 @@ class BarDataSerializer(serializers.ModelSerializer):
 # from symbols.models import Symbol
 
 # class BarDataSerializer(serializers.ModelSerializer):
-#     symbol = serializers.CharField(write_only=True)
+#     symbol = serializers.SlugRelatedField(
+#         queryset=Symbol.objects.all(),
+#         slug_field='ticker', 
+#         write_only=False  # Now allowing both read and write
+#     )
 
 #     class Meta:
 #         model = BarData
-#         fields = ['id', 'ticker', 'timestamp', 'open', 'close', 'high', 'low', 'volume']
+#         fields = ['id', 'symbol', 'timestamp', 'open', 'close', 'high', 'low', 'volume']
 
 #     def to_representation(self, instance):
-#         """Modify the representation for read operations to include the symbol."""
+#         """Modify the representation for read operations to include the ticker."""
 #         ret = super().to_representation(instance)
+#         # Ensure 'ticker' shows the ticker symbol, not the Symbol object ID
 #         ret['symbol'] = instance.symbol.ticker
 #         return ret
 
 #     def create(self, validated_data):
-#         # Convert symbol to symbol
-#         symbol = self.get_symbol_by_symbol(validated_data.pop('symbol'))
-#         validated_data['symbol'] = symbol
+#         # 'ticker' field is automatically handled by SlugRelatedField
 #         return super().create(validated_data)
 
 #     def update(self, instance, validated_data):
-#         # Convert symbol to symbol
-#         symbol = self.get_symbol_by_symbol(validated_data.pop('symbol'))
-#         validated_data['symbol'] = symbol
+#         # 'ticker' field is automatically handled by SlugRelatedField
 #         return super().update(instance, validated_data)
 
-#     @staticmethod
-#     def get_symbol_by_symbol(symbol):
-#         try:
-#             return Symbol.objects.get(symbol=symbol)
-#         except Symbol.DoesNotExist:
-#             raise serializers.ValidationError(f"Symbol with symbol {symbol} does not exist")
+

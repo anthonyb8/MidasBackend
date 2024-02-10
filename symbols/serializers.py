@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Symbol, Equity, Cryptocurrency, Future, Option, AssetClass, Currency, Benchmark
+from .models import Symbol, Equity, Cryptocurrency, Future, Option, AssetClass, Currency, Index
 from rest_framework.exceptions import APIException
 import logging
 
@@ -15,12 +15,19 @@ class CurrencySerializer(serializers.ModelSerializer):
         model = Currency
         fields = ['id', 'code', 'name', 'region']
 
+
+class SymbolReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Symbol
+        fields = ['id', 'ticker', 'security_type', 'created_at', 'updated_at']
+
+
 class SymbolWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Symbol
         fields = ['id', 'ticker', 'security_type', 'created_at', 'updated_at']
 
-class BenchmarkSerializer(serializers.ModelSerializer):
+class IndexSerializer(serializers.ModelSerializer):
     asset_class = serializers.SlugRelatedField(
         slug_field='name',
         queryset=AssetClass.objects.all(),
@@ -32,16 +39,20 @@ class BenchmarkSerializer(serializers.ModelSerializer):
         write_only=True
     )
     
+    symbol_data = SymbolWriteSerializer(write_only=True)
+    ticker = serializers.SerializerMethodField()
     asset_class_name = serializers.SerializerMethodField()
     currency_code = serializers.SerializerMethodField()
-    symbol_data = SymbolWriteSerializer(write_only=True)
 
     class Meta:
-        model = Benchmark
-        fields = ['symbol_data', 'benchmark_name', 'asset_class', 'currency', 'asset_class_name', 'currency_code']
+        model = Index
+        fields = ['symbol_data','ticker', 'name', 'asset_class', 'currency', 'asset_class_name', 'currency_code']
 
     def get_asset_class_name(self, obj):
         return obj.asset_class.name if obj.asset_class else None
+    
+    def get_ticker(self, obj):
+        return obj.symbol.ticker if obj.symbol else None
 
     def get_currency_code(self, obj):
         return obj.currency.code if obj.currency else None
@@ -54,10 +65,10 @@ class BenchmarkSerializer(serializers.ModelSerializer):
             logger.info(f"Symbol sucessfully created: {symbol}")
             
             # Create benchmark and link to symbol
-            benchmark = Benchmark.objects.create(ticker=symbol, **validated_data)
-            logger.info(f"Benchmark sucessfully created: {benchmark}")
+            index = Index.objects.create(symbol=symbol, **validated_data)
+            logger.info(f"Index sucessfully created: {index}")
             
-            return benchmark
+            return index
         except AssetClass.DoesNotExist as e:
             logger.info(e)
             raise APIException("The specified asset class does not exist.")
@@ -111,10 +122,14 @@ class BenchmarkSerializer(serializers.ModelSerializer):
 class EquitySerializer(serializers.ModelSerializer):
     # Use SymbolWriteSerializer to handle the nested symbol data for write operations
     symbol_data = SymbolWriteSerializer(write_only=True)
+    ticker = serializers.SerializerMethodField()
 
     class Meta:
         model = Equity
-        fields = ['symbol_data', 'company_name', 'exchange', 'currency', 'industry', 'market_cap', 'shares_outstanding', 'created_at', 'updated_at']
+        fields = ['symbol_data','ticker', 'company_name', 'exchange', 'currency', 'industry', 'market_cap', 'shares_outstanding', 'created_at', 'updated_at']
+    
+    def get_ticker(self, obj):
+        return obj.symbol.ticker if obj.symbol else None
 
     def create(self, validated_data):
         """
@@ -159,11 +174,15 @@ class EquitySerializer(serializers.ModelSerializer):
 
 class FutureSerializer(serializers.ModelSerializer):
     symbol_data = SymbolWriteSerializer(write_only=True)
+    ticker = serializers.SerializerMethodField()
 
     class Meta:
         model = Future
-        fields = ['symbol_data','product_code','product_name', 'exchange','currency','contract_size','contract_units','tick_size','min_price_fluctuation', 'continuous','created_at','updated_at']
+        fields = ['symbol_data','ticker','product_code','product_name', 'exchange','currency','contract_size','contract_units','tick_size','min_price_fluctuation', 'continuous','created_at','updated_at']
 
+    def get_ticker(self, obj):
+        return obj.symbol.ticker if obj.symbol else None
+    
     def create(self, validated_data):
         symbol_data = validated_data.pop('symbol_data')
         symbol = Symbol.objects.create(**symbol_data)
@@ -189,10 +208,14 @@ class FutureSerializer(serializers.ModelSerializer):
 
 class CryptocurrencySerializer(serializers.ModelSerializer):
     symbol_data = SymbolWriteSerializer(write_only=True)
+    ticker = serializers.SerializerMethodField()
 
     class Meta:
         model = Cryptocurrency
-        fields = ['symbol_data', 'cryptocurrency_name', 'circulating_supply', 'market_cap', 'total_supply', 'max_supply', 'description', 'created_at', 'updated_at']
+        fields = ['symbol_data','ticker', 'cryptocurrency_name', 'circulating_supply', 'market_cap', 'total_supply', 'max_supply', 'description', 'created_at', 'updated_at']
+    
+    def get_ticker(self, obj):
+        return obj.symbol.ticker if obj.symbol else None
 
     def create(self, validated_data):
         symbol_data = validated_data.pop('symbol_data')
@@ -219,10 +242,14 @@ class CryptocurrencySerializer(serializers.ModelSerializer):
 
 class OptionSerializer(serializers.ModelSerializer):
     symbol_data = SymbolWriteSerializer(write_only=True)
+    ticker = serializers.SerializerMethodField()
 
     class Meta:
         model = Option
-        fields = ['symbol_data', 'strike_price', 'expiration_date', 'option_type', 'contract_size','underlying_name','exchange','created_at','updated_at']
+        fields = ['symbol_data','ticker', 'strike_price', 'expiration_date', 'option_type', 'contract_size','underlying_name','exchange','created_at','updated_at']
+    
+    def get_ticker(self, obj):
+        return obj.symbol.ticker if obj.symbol else None
 
     def create(self, validated_data):
         symbol_data = validated_data.pop('symbol_data')
@@ -247,30 +274,30 @@ class OptionSerializer(serializers.ModelSerializer):
 
         return instance
     
-class SymbolReadSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Symbol
-        fields = ['id', 'ticker', 'security_type', 'created_at', 'updated_at']
+# class SymbolReadSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Symbol
+#         fields = ['id', 'ticker', 'security_type', 'created_at', 'updated_at']
 
-    def to_representation(self, instance):
-        """Customize the serialization based on the symbol type."""
-        representation = super().to_representation(instance)
+#     def to_representation(self, instance):
+#         """Customize the serialization based on the symbol type."""
+#         representation = super().to_representation(instance)
 
-        if hasattr(instance, 'equity'):
-            equity_data = EquitySerializer(instance.equity).data
-            representation.update(equity_data)  # Merge equity data into the main representation
-        # elif hasattr(instance, 'commodity'):
-        #     commodity_data = CommoditySerializer(instance.commodity).data
-        #     representation.update(commodity_data)  # Merge commodity data
-        elif hasattr(instance, 'cryptocurrency'):
-            cryptocurrency_data = CryptocurrencySerializer(instance.cryptocurrency).data
-            representation.update(cryptocurrency_data)  # Merge cryptocurrency data
-        elif hasattr(instance, 'future'):
-            future_data = FutureSerializer(instance.future).data
-            representation.update(future_data)  # Merge cryptocurrency data
-        elif hasattr(instance, 'option'):
-            option_data = OptionSerializer(instance.option).data
-            representation.update(option_data)  # Merge cryptocurrency data
+#         if hasattr(instance, 'equity'):
+#             equity_data = EquitySerializer(instance.equity).data
+#             representation.update(equity_data)  # Merge equity data into the main representation
+#         # elif hasattr(instance, 'commodity'):
+#         #     commodity_data = CommoditySerializer(instance.commodity).data
+#         #     representation.update(commodity_data)  # Merge commodity data
+#         elif hasattr(instance, 'cryptocurrency'):
+#             cryptocurrency_data = CryptocurrencySerializer(instance.cryptocurrency).data
+#             representation.update(cryptocurrency_data)  # Merge cryptocurrency data
+#         elif hasattr(instance, 'future'):
+#             future_data = FutureSerializer(instance.future).data
+#             representation.update(future_data)  # Merge cryptocurrency data
+#         elif hasattr(instance, 'option'):
+#             option_data = OptionSerializer(instance.option).data
+#             representation.update(option_data)  # Merge cryptocurrency data
         
-        return representation
+#         return representation
     
