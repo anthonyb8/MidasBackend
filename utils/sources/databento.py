@@ -1,13 +1,13 @@
 import databento as db
 from enum import Enum
 from decouple import config
-from client import DatabaseClient, SecurityType, Exchange,Indsutry, Currency, ContractUnits
+from ..client import DatabaseClient, SecurityType, Exchange,Indsutry, Currency, ContractUnits
 import pandas as pd
 from decouple import config
-import datetime
+from datetime import datetime, timedelta
 
-DATABASE_KEY = config('MIDAS_API_KEY')
-DATABASE_URL = config('MIDAS_URL')
+DATABASE_KEY = config('LOCAL_API_KEY')
+DATABASE_URL = config('LOCAL_URL')
 
 class Schemas(Enum):
     MBO='mbo'               # Market by order, full order book, tick data
@@ -158,8 +158,39 @@ class DatabentoClient:
 if __name__ == "__main__":
     # Initialize the database client
     database = DatabaseClient(DATABASE_KEY,DATABASE_URL)  # Adjust URL if not running locally
-    start_date = "2018-05-01"
-    end_date="2024-01-19"
+    # start_date = "2018-05-01"
+    start_date_str = "2024-02-01"
+    end_date_str="2024-02-07"
+
+    # Convert to datetime objects and add time
+    start_datetime = datetime.strptime(start_date_str, "%Y-%m-%d")
+    end_datetime = datetime.strptime(end_date_str, "%Y-%m-%d") + timedelta(days=1, seconds=-1)
+
+    # Format back to strings if necessary, including time up to seconds
+    start_date_with_time = start_datetime.strftime("%Y-%m-%d %H:%M:%S")
+    end_date_with_time = end_datetime.strftime("%Y-%m-%d %H:%M:%S")
+
+    # -- Get Databento Continuous Future Data by Open Interest --
+    symbols = ['HE.n.0'] #, 'ZC.n.0', 'ZM.n.0'] # 'n' Will rank the expirations by the open interest at the previous day's close
+    schema = Schemas.OHLCV_1d
+    dataset = Datasets.CME
+    stype = Symbology.CONTINUOSCONTRACT
+
+    # Check and create assets if they don't exist
+    for symbol in symbols:
+        if not database.get_symbol_by_ticker(symbol):
+            raise Exception(f"{symbol} not present in database.")
+        
+
+    # Databento client
+    client = DatabentoClient(symbols, schema, dataset, stype, start_datetime, end_datetime)
+    data = client.get_data()
+
+    # Database client
+    response = database.create_bulk_price_data(data)
+    print(response)
+
+
 
     # # -- Get Databento Equtiy Data --
     # symbols = ['AAPL', 'MSFT']
@@ -172,27 +203,6 @@ if __name__ == "__main__":
     # dataset = Datasets.CME
     # stype = Symbology.RAWSYMBOL
     # symbols = ["ZCH4"] 
-
-    # -- Get Databento Continuous Future Data by Open Interest --
-    symbols = ['HE.n.0', 'ZC.n.0', 'ZM.n.0'] # 'n' Will rank the expirations by the open interest at the previous day's close
-    schema = Schemas.OHLCV_1d
-    dataset = Datasets.CME
-    stype = Symbology.CONTINUOSCONTRACT
-
-    # Check and create assets if they don't exist
-    for symbol in symbols:
-        if not database.get_asset_by_symbol(symbol):
-            raise Exception(f"{symbol} not present in database.")
-        
-
-
-    # Databento client
-    client = DatabentoClient(symbols, schema, dataset, stype, start_date, end_date)
-    data = client.get_data()
-
-    # # Database client
-    response = database.create_bulk_price_data(data)
-    print(response)
 
 
     # -- Create Equity --
@@ -223,7 +233,7 @@ if __name__ == "__main__":
 
     # -- Create Future -- 
     # HE_n_0 = {
-    #     'symbol':'HE.n.0',
+    #     'ticker':'HE.n.0',
     #     'security_type':SecurityType.FUTURE,
     #     'product_code':'HE',
     #     'product_name':'Lean Hogs',
@@ -235,11 +245,11 @@ if __name__ == "__main__":
     #     'min_price_fluctuation':10.00,
     #     'continuous':True
     #     }
-    # # database.create_future(**HE_n_0)
+    # database.create_future(**HE_n_0)
 
 
     # ZC_n_0 = {
-    #     'symbol':'ZC.n.0',
+    #     'ticker':'ZC.n.0',
     #     'security_type':SecurityType.FUTURE,
     #     'product_code':'ZC',
     #     'product_name':'Corn',
@@ -255,7 +265,7 @@ if __name__ == "__main__":
 
 
     # ZM_n_0 = {
-    #     'symbol':'ZM.n.0',
+    #     'ticker':'ZM.n.0',
     #     'security_type':SecurityType.FUTURE,
     #     'product_code':'ZM',
     #     'product_name':'Soybean Meal',

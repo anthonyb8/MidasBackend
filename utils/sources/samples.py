@@ -17,7 +17,7 @@ if __name__ == "__main__":
 # *** Currency ***
     # -- Create --
     # USD = {
-    #     'code':'CAD',
+    #     'code':Curency.USD,
     #     'name':'Canadian Dollar',
     #     'region':'Canada',
     #     }
@@ -207,11 +207,11 @@ if __name__ == "__main__":
     # response = database.create_bulk_price_data(data)
 
     # -- Get Filter-- 
-    # tickers = ['^GSPC', 'HE.n.0', 'AAPL']
-    # start_date = "2024-01-01"
-    # end_date="2024-03-21"
-    # response = database.get_bar_data(tickers, start_date, end_date)
-    # print(response)
+    tickers = ['HE.n.0', 'AAPL2']
+    start_date = "2024-01-01"
+    end_date="2024-03-21"
+    response = database.get_bar_data(tickers, start_date, end_date)
+    print(response)
 
 
     # -- Update -- 
