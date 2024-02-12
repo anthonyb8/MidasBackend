@@ -9,7 +9,10 @@ from datetime import datetime, timedelta
 class AssetClass(Enum):
     EQUITY = 'EQUITY'
     COMMODITY = 'COMMODITY'
-
+    FIXED_INCOME ='FIXED_INCOME'
+    FOREX='FOREX'
+    CRYPTOCURRENCY='CRYPTOCURRENCY'
+    
 class SecurityType(Enum):
     EQUITY = 'EQUITY'
     FUTURE = 'FUTURE'
@@ -22,7 +25,11 @@ class Exchange(Enum):
 
 class Currency(Enum):   
     USD='USD'
-    CAD='CAD'              
+    CAD='CAD'   
+    EUR='EUR'
+    GBP='GBP'
+    AUD='AUD'           
+    JPY='JPY'
 
 class Indsutry(Enum):
     # Equities
@@ -66,7 +73,7 @@ class DatabaseClient:
             description (str): The description of the asset class.
         """
         required_keys = {
-            "name": str,
+            "name": AssetClass,
             "description": str,  
         }
 
@@ -79,7 +86,7 @@ class DatabaseClient:
 
         # Prepare the data payload
         data = {
-            "name": asset_class_data['name'],
+            "name": asset_class_data['name'].value,
             "description": asset_class_data['description']
         }
 

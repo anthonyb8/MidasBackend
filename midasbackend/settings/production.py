@@ -59,6 +59,10 @@ LOGGING = {
             'formatter': 'verbose',
         },
     },
+    'root': {
+        'handlers': ['file'],
+        'level': 'DEBUG',
+    },
     'loggers': {
         'django': {
             'handlers': ['file', 'mail_admins'],

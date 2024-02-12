@@ -50,8 +50,12 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'filename': BASE_DIR / 'logs/development.log',
             'formatter': 'verbose',
-            'mode': 'w',
+            'mode': 'a',
         },
+    },
+    'root': {
+        'handlers': ['file'],
+        'level': 'DEBUG',
     },
     'loggers': {
         'django': {
