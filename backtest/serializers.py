@@ -1,31 +1,34 @@
 from rest_framework import serializers
-from .models import Backtest, SummaryStats, Trade, EquityData, Signal, PriceData, TradeInstruction
+from .models import Backtest, StaticStats, TimeseriesStats, Trade, Signal, TradeInstruction
 from .services import create_backtest
 
 
-class SummaryStatsSerializer(serializers.ModelSerializer):
+class StaticStatsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SummaryStats
-        fields = ['total_return', 'total_trades', 'total_fees', 'net_profit', 
-                  'ending_equity', 'max_drawdown', 'avg_win_percent', 
-                  'avg_loss_percent', 'sortino_ratio', 'alpha', 'beta', 
-                  'annual_standard_deviation', 'profit_and_loss_ratio', 
-                  'profit_factor'] 
-        
+        model = StaticStats
+        fields = [
+                    'net_profit', 'total_return','max_drawdown','annual_standard_deviation','ending_equity', 
+                    'total_fees', 'total_trades', "num_winning_trades", "num_lossing_trades", "avg_win_percent", 
+                    "avg_loss_percent","percent_profitable", "profit_and_loss", "profit_factor", "avg_trade_profit", 
+                    'sharpe_ratio', 'sortino_ratio', 'alpha', 'beta'
+                ]
+
+class TimeseriesStatsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TimeseriesStats
+        fields = ['timestamp', 'equity_value', 'percent_drawdown', 'cumulative_return', 'daily_return']
+
+
 class TradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trade
-        fields = ['trade_id', 'leg_id', 'timestamp', 'symbol', 'quantity', 'price', 'cost', 'direction']
+        fields = ['trade_id', 'leg_id', 'timestamp', 'symbol', 'quantity', 'price', 'cost', 'action', 'fees']
 
-class EquityDataSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EquityData
-        fields = ['timestamp', 'equity_value', 'percent_drawdown', 'percent_return']
 
 class TradeInstructionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TradeInstruction
-        fields = ['ticker', 'direction', 'trade_id', 'leg_id', 'allocation_percent']
+        fields = ['ticker', 'action', 'trade_id', 'leg_id', 'weight']
 
 class SignalSerializer(serializers.ModelSerializer):
     trade_instructions = TradeInstructionSerializer(many=True)
@@ -40,28 +43,22 @@ class SignalSerializer(serializers.ModelSerializer):
         for ti_data in trade_instructions_data:
             TradeInstruction.objects.create(signal=signal, **ti_data)
         return signal
-    
-class PriceDataSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PriceData
-        fields = ['symbol', 'timestamp', 'open', 'close', 'high', 'low', 'volume']
 
 class BacktestListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Backtest
-        fields = ['id', 'strategy_name', 'symbols', 'start_date', 'end_date', 'capital', 'strategy_allocation', 'created_at']
+        fields = ['id', 'strategy_name', 'tickers', 'benchmark', 'data_type', 'train_start', 'train_end', 'test_start', 'test_end', 'capital', 'strategy_allocation', 'created_at']
 
 class BacktestSerializer(serializers.ModelSerializer):
     parameters = BacktestListSerializer(source='*') 
-    summary_stats = SummaryStatsSerializer(many=True)
+    timeseries_stats = TimeseriesStatsSerializer(many=True)
+    static_stats = StaticStatsSerializer(many=True)
     trades = TradeSerializer(many=True)
-    equity_data = EquityDataSerializer(many=True)
     signals = SignalSerializer(many=True)
-    price_data = PriceDataSerializer(many=True)
 
     class Meta:
         model = Backtest
-        fields = ['id', 'parameters','summary_stats', 'trades', 'equity_data', 'signals', 'price_data']
+        fields = ['id', 'parameters', 'static_stats', 'trades', 'timeseries_stats', 'signals']
 
     def create(self, validated_data):
         # Extract parameters from the initial data if available
@@ -69,39 +66,12 @@ class BacktestSerializer(serializers.ModelSerializer):
 
         # Map parameters to the respective fields in Backtest model
         validated_data['strategy_name'] = parameters.get('strategy_name')
-        validated_data['symbols'] = parameters.get('symbols')
-        validated_data['start_date'] = parameters.get('start_date')
-        validated_data['end_date'] = parameters.get('end_date')
+        validated_data['tickers'] = parameters.get('tickers')
+        validated_data['train_start'] = parameters.get('train_start')
+        validated_data['train_end'] = parameters.get('train_end')
+        validated_data['test_start'] = parameters.get('test_start')
+        validated_data['test_end'] = parameters.get('test_end')
         validated_data['capital'] = parameters.get('capital')
         validated_data['strategy_allocation'] = parameters.get('strategy_allocation')
 
         return create_backtest(validated_data)
-    
-
-
-
-# class BacktestSerializer(serializers.ModelSerializer):
-#     # parameters = serializers.JSONField()
-#     summary_stats = SummaryStatsSerializer(many=True)
-#     trades = TradeSerializer(many=True)
-#     equity_data = EquityDataSerializer(many=True)
-#     signals = SignalSerializer(many=True)
-#     price_data = PriceDataSerializer(many=True)
-
-#     class Meta:
-#         model = Backtest
-#         fields = ['id','summary_stats', 'trades', 'equity_data', 'signals', 'price_data']
-
-#     def create(self, validated_data):
-#         parameters = validated_data.pop('parameters', {})
-
-#         # Individual fields need to be extracted from parameters and added to validated_data
-#         validated_data['strategy_name'] = parameters.get('strategy_name')
-#         validated_data['start_date'] = parameters.get('start_date')
-#         validated_data['end_date'] = parameters.get('end_date')
-#         validated_data['capital'] = parameters.get('capital')
-#         validated_data['strategy_allocation'] = parameters.get('strategy_allocation')
-
-#         # Create the Backtest instance
-#         backtest = Backtest.objects.create(**validated_data)
-#         return backtest

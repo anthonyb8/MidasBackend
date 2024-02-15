@@ -6,8 +6,13 @@ import pandas as pd
 from decouple import config
 from datetime import datetime, timedelta
 
-DATABASE_KEY = config('LOCAL_API_KEY')
-DATABASE_URL = config('LOCAL_URL')
+pd.set_option('display.max_colwidth', None)
+pd.set_option('display.max_columns', 100)
+pd.set_option('display.width', 1000) # Adjust the width of the display in characters
+pd.set_option('display.max_rows', None)
+
+DATABASE_KEY = config('MIDAS_API_KEY')
+DATABASE_URL = config('MIDAS_URL')
 
 class Schemas(Enum):
     MBO='mbo'               # Market by order, full order book, tick data
@@ -73,15 +78,18 @@ class DatabentoClient:
                     return
 
         # Check the size of the data
+        # If less than 5 GB, proceed with historical data retrieval
         if self.get_size() < 5:
-            # If less than 5 GB, proceed with historical data retrieval
-            return self.get_historical()
+            if self.schema == Schemas.Trades.value:
+                return self.get_historical_trades()
+            else:
+                return self.get_historical_bar()
         else:
             # Suggest batch load for large data sizes
             print("\nData size greater than 5 GB: Batch Load Recommended.")
             # Here you can add logic for batch loading if applicable
 
-    def get_historical(self):
+    def get_historical_bar(self):
         """ Used to return smaller batches of data under """
         try:                
             data = self.hist_client.timeseries.get_range(
@@ -94,17 +102,55 @@ class DatabentoClient:
 
             )
 
+            print(data)
+
+            # Convert to DataFrame
+            df = data.to_df()
+            print(df)
+            df.reset_index(inplace=True) 
+            df.rename(columns={"ts_event": "timestamp"}, inplace=True) 
+
+            
+
+            # Drop the unnecessary columns
+            columns_to_drop = ['publisher_id', 'rtype', 'instrument_id']
+            df.drop(columns=columns_to_drop, errors='ignore', inplace=True)
+            # print(df)        
+            # Convert the DataFrame to JSON, with dates in ISO format
+            df['timestamp'] = df['timestamp'].apply(lambda x: x.isoformat() if pd.notnull(x) else None)
+            # print(df)
+            data_list = df.to_dict(orient='records')
+            
+            return data_list
+        
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            raise
+    
+    def get_historical_trades(self):
+        """ Used to return smaller batches of data under """
+        try:                
+            data = self.hist_client.timeseries.get_range(
+                dataset=self.dataset,
+                symbols=self.symbols,
+                schema=self.schema,
+                stype_in=self.stype,
+                start=self.start_date,
+                end=self.end_date
+            )
+
             # Convert to DataFrame
             df = data.to_df()
             df.reset_index(inplace=True) 
             df.rename(columns={"ts_event": "timestamp"}, inplace=True) 
 
             # Drop the unnecessary columns
-            columns_to_drop = ['publisher_id', 'rtype', 'instrument_id']
+            columns_to_drop = ['publisher_id', 'rtype', 'instrument_id', 'action', 'flags', 'ts_in_delta', 'sequence', 'ts_recv', 'depth']
             df.drop(columns=columns_to_drop, errors='ignore', inplace=True)
                     
             # Convert the DataFrame to JSON, with dates in ISO format
             df['timestamp'] = df['timestamp'].apply(lambda x: x.isoformat() if pd.notnull(x) else None)
+            print(df)
             data_list = df.to_dict(orient='records')
             
             return data_list
@@ -158,8 +204,8 @@ class DatabentoClient:
 if __name__ == "__main__":
     # Initialize the database client
     database = DatabaseClient(DATABASE_KEY,DATABASE_URL)  # Adjust URL if not running locally
-    # start_date = "2018-05-01"
-    start_date_str = "2024-02-01"
+    start_date_str = "2024-02-06"
+    # start_date_str = "2024-02-01"
     end_date_str="2024-02-07"
 
     # Convert to datetime objects and add time
@@ -171,8 +217,8 @@ if __name__ == "__main__":
     end_date_with_time = end_datetime.strftime("%Y-%m-%d %H:%M:%S")
 
     # -- Get Databento Continuous Future Data by Open Interest --
-    symbols = ['HE.n.0'] #, 'ZC.n.0', 'ZM.n.0'] # 'n' Will rank the expirations by the open interest at the previous day's close
-    schema = Schemas.OHLCV_1d
+    symbols = ['HE.n.0', 'ZC.n.0', 'ZM.n.0'] # 'n' Will rank the expirations by the open interest at the previous day's close
+    schema = Schemas.OHLCV_1h
     dataset = Datasets.CME
     stype = Symbology.CONTINUOSCONTRACT
 
@@ -187,8 +233,8 @@ if __name__ == "__main__":
     data = client.get_data()
 
     # Database client
-    response = database.create_bulk_price_data(data)
-    print(response)
+    # response = database.create_bulk_price_data(data)
+    # print(response)
 
 
 

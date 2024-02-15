@@ -6,8 +6,8 @@ from decouple import config
 from ..client import DatabaseClient, SecurityType, Exchange,Indsutry, Currency, ContractUnits, AssetClass
 
 
-DATABASE_KEY = config('LOCAL_API_KEY')
-DATABASE_URL = config('LOCAL_URL')
+DATABASE_KEY = config('MIDAS_API_KEY')
+DATABASE_URL = config('MIDAS_URL')
 
 
 if __name__ == "__main__":
@@ -207,7 +207,7 @@ if __name__ == "__main__":
     # response = database.create_bulk_price_data(data)
 
     # -- Get Filter-- 
-    tickers = ['HE.n.0', 'AAPL2']
+    tickers = ['ZC.n.0']
     start_date = "2024-01-01"
     end_date="2024-03-21"
     response = database.get_bar_data(tickers, start_date, end_date)

@@ -1,7 +1,7 @@
 from rest_framework import viewsets
-from .models import Backtest, SummaryStats, Trade, EquityData, Signal, PriceData
-from .serializers import (BacktestSerializer, SummaryStatsSerializer, TradeSerializer, 
-                          EquityDataSerializer, SignalSerializer, PriceDataSerializer,  BacktestListSerializer)
+from .models import Backtest, StaticStats, TimeseriesStats, Trade, Signal
+from .serializers import (BacktestSerializer, StaticStatsSerializer, TradeSerializer, 
+                          TimeseriesStatsSerializer, SignalSerializer, BacktestListSerializer)
 
 class BacktestViewSet(viewsets.ModelViewSet):
     queryset = Backtest.objects.all()
@@ -13,23 +13,20 @@ class BacktestViewSet(viewsets.ModelViewSet):
         
         return super().get_serializer_class()
     
-class SummaryStatsViewSet(viewsets.ModelViewSet):
-    queryset = SummaryStats.objects.all()
-    serializer_class = SummaryStatsSerializer
+class StaticStatsViewSet(viewsets.ModelViewSet):
+    queryset = StaticStats.objects.all()
+    serializer_class = StaticStatsSerializer
+
+class TimeseriesStatsViewSet(viewsets.ModelViewSet):
+    queryset = TimeseriesStats.objects.all()
+    serializer_class = TimeseriesStatsSerializer
 
 class TradeViewSet(viewsets.ModelViewSet):
     queryset = Trade.objects.all()
     serializer_class = TradeSerializer
 
-class EquityDataViewSet(viewsets.ModelViewSet):
-    queryset = EquityData.objects.all()
-    serializer_class = EquityDataSerializer
-
 class SignalViewSet(viewsets.ModelViewSet):
     queryset = Signal.objects.all()
     serializer_class = SignalSerializer
 
-class PriceDataViewSet(viewsets.ModelViewSet):
-    queryset = PriceData.objects.all()
-    serializer_class = PriceDataSerializer
 

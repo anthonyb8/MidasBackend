@@ -211,7 +211,6 @@ class DatabaseClient:
             raise ValueError(f"Currency update failed: {response.text}")
         return response.json()
     
-    
     # -- Indexes -- 
     def create_index(self, **index_data):
         """
@@ -556,7 +555,7 @@ class DatabaseClient:
         return response.json()
 
     def create_bulk_price_data(self, bulk_data: List[Dict]):
-        batch_size = 400
+        batch_size = 300
         total_batches = len(bulk_data) // batch_size + (1 if len(bulk_data) % batch_size > 0 else 0)
         all_responses = []
 
@@ -593,6 +592,7 @@ class DatabaseClient:
 
         current_start = start
         all_data = []
+        # print(all_data)
 
         while current_start < end:
             current_end = min(current_start + timedelta(days=batch_size), end)

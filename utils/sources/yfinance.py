@@ -62,8 +62,8 @@ if __name__ == "__main__":
     client = YFinanceClient()
     
     # Variables
-    start_date = "2024-01-01"
-    end_date="2024-01-19"
+    start_date = "2018-05-01"
+    end_date ="2024-02-07"
     symbols = ['^GSPC']
 
     # Check if symbols exist
