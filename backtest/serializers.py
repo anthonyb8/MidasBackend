@@ -22,7 +22,7 @@ class TimeseriesStatsSerializer(serializers.ModelSerializer):
 class TradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trade
-        fields = ['trade_id', 'leg_id', 'timestamp', 'symbol', 'quantity', 'price', 'cost', 'action', 'fees']
+        fields = ['trade_id', 'leg_id', 'timestamp', 'ticker', 'quantity', 'price', 'cost', 'action', 'fees']
 
 
 class TradeInstructionSerializer(serializers.ModelSerializer):

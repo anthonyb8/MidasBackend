@@ -55,7 +55,7 @@ class Trade(models.Model):
     trade_id = models.CharField(max_length=100)  
     leg_id = models.CharField(max_length=100)    
     timestamp = models.DateTimeField()
-    symbol = models.CharField(max_length=50)     
+    ticker = models.CharField(max_length=50)     
     quantity = models.DecimalField(max_digits=10, decimal_places=4)
     price = models.DecimalField(max_digits=10, decimal_places=4)
     cost = models.DecimalField(max_digits=10, decimal_places=4)
