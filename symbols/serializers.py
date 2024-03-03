@@ -15,12 +15,10 @@ class CurrencySerializer(serializers.ModelSerializer):
         model = Currency
         fields = ['id', 'code', 'name', 'region']
 
-
 class SymbolReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Symbol
         fields = ['id', 'ticker', 'security_type', 'created_at', 'updated_at']
-
 
 class SymbolWriteSerializer(serializers.ModelSerializer):
     class Meta:
@@ -58,6 +56,7 @@ class IndexSerializer(serializers.ModelSerializer):
         return obj.currency.code if obj.currency else None
 
     def create(self, validated_data):
+        logger.info("Attempting to create a new Index.")
         try:
             # Create associated symbol
             symbol_data = validated_data.pop('symbol_data')
@@ -66,8 +65,7 @@ class IndexSerializer(serializers.ModelSerializer):
             
             # Create benchmark and link to symbol
             index = Index.objects.create(symbol=symbol, **validated_data)
-            logger.info(f"Index sucessfully created: {index}")
-            
+            logger.info(f"Index created with ID: {index.id}")
             return index
         except AssetClass.DoesNotExist as e:
             logger.info(e)
@@ -76,14 +74,15 @@ class IndexSerializer(serializers.ModelSerializer):
             logger.info(e)
             raise APIException("The specified currency does not exist.")
         except Exception as e:
-            logger.info(f"Failed to create benchmark: {str(e)}")
-            raise APIException(f"Failed to create benchmark: {str(e)}")
+            logger.error(f"Failed to create Index: {e}")
+            raise APIException(f"Failed to create Index due to an error: {str(e)}")
 
     def update(self, instance, validated_data):
         """
         Custom update method for Benchmark instances.
         Allows switching to a different AssetClass or Currency without editing them directly.
         """
+        logger.info(f"Attempting to update Index with ID: {instance.id}")
         try:
             # Optional: Update Symbol data if provided
             symbol_obj = validated_data.pop('symbol_data', None)
@@ -113,14 +112,13 @@ class IndexSerializer(serializers.ModelSerializer):
 
             # Save any other updated fields of the Benchmark instance
             instance.save()
-
+            logger.info(f"Index updated successfully with ID: {instance.id}")
             return instance
         except Exception as e:
-            logger.error(f"Error in update: {str(e)}")
-            raise APIException("Failed to update benchmark.")
+            logger.error(f"Failed to update Index with ID: {instance.id}: {e}")
+            raise serializers.ValidationError(f"Failed to update Index due to an error: {str(e)}")
 
 class EquitySerializer(serializers.ModelSerializer):
-    # Use SymbolWriteSerializer to handle the nested symbol data for write operations
     symbol_data = SymbolWriteSerializer(write_only=True)
     ticker = serializers.SerializerMethodField()
 
@@ -136,41 +134,48 @@ class EquitySerializer(serializers.ModelSerializer):
         Custom create method for Equity instances.
         Extracts symbol_data, creates a Symbol instance, and then creates an Equity instance.
         """
+        logger.info("Attempting to create new Equity with data: %s", validated_data)
         try:
-            # Extract symbol_data from the validated data
+            # Create Symbol
             symbol_data = validated_data.pop('symbol_data')
-            # Create a new Symbol instance from the symbol_data
             symbol = Symbol.objects.create(**symbol_data)
-            # Create and return a new Equity instance, linking it with the created Symbol
+            logger.info(f"Symbol created with ticker: {symbol.ticker}")
+
+            # Create Equity
             equity = Equity.objects.create(symbol=symbol, **validated_data)
+            logger.info(f"Equity created with ID: {equity.id}")
             return equity
         except Exception as e:
-            # Log the exception for debugging purposes
-            logger.error(f"Error in create: {str(e)}")
-            # Raise a generic APIException for any errors encountered during creation
-            raise APIException("Failed to create equity. Please check your data.")
+            logger.error(f"Failed to create Equity: {e}")
+            raise serializers.ValidationError(f"Failed to create Equity: {e}")
 
     def update(self, instance, validated_data):
         """
         Custom update method for Equity instances.
         Optionally updates nested symbol_data if provided, then updates the Equity instance.
         """
-        # Optionally extract symbol_data for update, defaulting to None if not provided
-        symbol_data = validated_data.pop('symbol_data', None)
+        logger.info(f"Attempting to update Equity with ID: {instance.id}")
+        
+        try:
+            symbol_data = validated_data.pop('symbol_data', None)
 
-        # If symbol_data is provided, update the related Symbol instance
-        if symbol_data:
-            symbol = instance.symbol
-            for attr, value in symbol_data.items():
-                setattr(symbol, attr, value)
-            symbol.save()
+            # Update Symbol instance if provided
+            if symbol_data:
+                symbol = instance.symbol
+                for attr, value in symbol_data.items():
+                    setattr(symbol, attr, value)
+                symbol.save()
+                logger.info(f"Symbol updated for Equity ID: {instance.id}")
 
-        # Update the Equity instance with any remaining validated_data
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        return instance
+            # Update Equity instance with any remaining validated_data
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+            logger.info(f"Equity updated successfully with ID: {instance.id}")
+            return instance
+        except Exception as e:
+            logger.error(f"Failed to update Equity with ID: {instance.id}: {e}")
+            raise serializers.ValidationError(f"Failed to update Equity: {e}")
 
 class FutureSerializer(serializers.ModelSerializer):
     symbol_data = SymbolWriteSerializer(write_only=True)
@@ -184,27 +189,52 @@ class FutureSerializer(serializers.ModelSerializer):
         return obj.symbol.ticker if obj.symbol else None
     
     def create(self, validated_data):
-        symbol_data = validated_data.pop('symbol_data')
-        symbol = Symbol.objects.create(**symbol_data)
-        future = Future.objects.create(symbol=symbol, **validated_data)
-        return future
+        """
+        Custom create method for Future instances.
+        Extracts symbol_data, creates a Symbol instance, and then creates an Future instance.
+        """
+        logger.info("Attempting to create new Future with data: %s", validated_data)
+        try:
+            # Create Symbol
+            symbol_data = validated_data.pop('symbol_data')
+            symbol = Symbol.objects.create(**symbol_data)
+            logger.info(f"Symbol created with ticker: {symbol.ticker}")
 
+            # Create Future
+            future = Future.objects.create(symbol=symbol, **validated_data)
+            logger.info(f"Future created with ID: {future.id}")
+            return future
+        except Exception as e:
+            logger.error(f"Failed to create Future: {e}")
+            raise serializers.ValidationError(f"Failed to create Future: {e}")
+        
     def update(self, instance, validated_data):
-        symbol_data = validated_data.pop('symbol_data', None)
-        symbol = instance.symbol
+        """
+        Custom update method for Future instances.
+        Optionally updates nested symbol_data if provided, then updates the Future instance.
+        """
+        logger.info(f"Attempting to update Future with ID: {instance.id}")
+        
+        try:
+            symbol_data = validated_data.pop('symbol_data', None)
 
-        # Update the symbol instance
-        if symbol_data:
-            for attr, value in symbol_data.items():
-                setattr(symbol, attr, value)
-            symbol.save()
+            # Update Symbol instance if provided
+            if symbol_data:
+                symbol = instance.symbol
+                for attr, value in symbol_data.items():
+                    setattr(symbol, attr, value)
+                symbol.save()
+                logger.info(f"Symbol updated for Future ID: {instance.id}")
 
-        # Update the Equity instance
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        return instance
+            # Update Future instance with any remaining validated_data
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+            logger.info(f"Future updated successfully with ID: {instance.id}")
+            return instance
+        except Exception as e:
+            logger.error(f"Failed to update Future with ID: {instance.id}: {e}")
+            raise serializers.ValidationError(f"Failed to update Future: {e}")
 
 class CryptocurrencySerializer(serializers.ModelSerializer):
     symbol_data = SymbolWriteSerializer(write_only=True)
@@ -216,29 +246,54 @@ class CryptocurrencySerializer(serializers.ModelSerializer):
     
     def get_ticker(self, obj):
         return obj.symbol.ticker if obj.symbol else None
-
+    
     def create(self, validated_data):
-        symbol_data = validated_data.pop('symbol_data')
-        symbol = Symbol.objects.create(**symbol_data)
-        cryptocurrency = Cryptocurrency.objects.create(symbol=symbol, **validated_data)
-        return cryptocurrency
+        """
+        Custom create method for Cryptocurrency instances.
+        Extracts symbol_data, creates a Symbol instance, and then creates an Cryptocurrency instance.
+        """
+        logger.info("Attempting to create new Cryptocurrency with data: %s", validated_data)
+        try:
+            # Create Symbol
+            symbol_data = validated_data.pop('symbol_data')
+            symbol = Symbol.objects.create(**symbol_data)
+            logger.info(f"Symbol created with ticker: {symbol.ticker}")
 
+            # Create Cryptocurrency
+            cryptocurrency = Cryptocurrency.objects.create(symbol=symbol, **validated_data)
+            logger.info(f"Cryptocurrency created with ID: {cryptocurrency.id}")
+            return cryptocurrency
+        except Exception as e:
+            logger.error(f"Failed to create Cryptocurrency: {e}")
+            raise serializers.ValidationError(f"Failed to create Cryptocurrency: {e}")
+        
     def update(self, instance, validated_data):
-        symbol_data = validated_data.pop('symbol_data', None)
-        symbol = instance.symbol
+        """
+        Custom update method for Cryptocurrency instances.
+        Optionally updates nested symbol_data if provided, then updates the Cryptocurrency instance.
+        """
+        logger.info(f"Attempting to update Cryptocurrency with ID: {instance.id}")
+        
+        try:
+            symbol_data = validated_data.pop('symbol_data', None)
 
-        # Update the symbol instance
-        if symbol_data:
-            for attr, value in symbol_data.items():
-                setattr(symbol, attr, value)
-            symbol.save()
+            # Update Symbol instance if provided
+            if symbol_data:
+                symbol = instance.symbol
+                for attr, value in symbol_data.items():
+                    setattr(symbol, attr, value)
+                symbol.save()
+                logger.info(f"Symbol updated for Cryptocurrency ID: {instance.id}")
 
-        # Update the Equity instance
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        return instance
+            # Update Cryptocurrency instance with any remaining validated_data
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+            logger.info(f"Cryptocurrency updated successfully with ID: {instance.id}")
+            return instance
+        except Exception as e:
+            logger.error(f"Failed to update Cryptocurrency with ID: {instance.id}: {e}")
+            raise serializers.ValidationError(f"Failed to update Cryptocurrency: {e}")
 
 class OptionSerializer(serializers.ModelSerializer):
     symbol_data = SymbolWriteSerializer(write_only=True)
@@ -250,54 +305,54 @@ class OptionSerializer(serializers.ModelSerializer):
     
     def get_ticker(self, obj):
         return obj.symbol.ticker if obj.symbol else None
-
+    
     def create(self, validated_data):
-        symbol_data = validated_data.pop('symbol_data')
-        symbol = Symbol.objects.create(**symbol_data)
-        option = Option.objects.create(symbol=symbol, **validated_data)
-        return option
+        """
+        Custom create method for Option instances.
+        Extracts symbol_data, creates a Symbol instance, and then creates an Option instance.
+        """
+        logger.info("Attempting to create new Option with data: %s", validated_data)
+        try:
+            # Create Symbol
+            symbol_data = validated_data.pop('symbol_data')
+            symbol = Symbol.objects.create(**symbol_data)
+            logger.info(f"Symbol created with ticker: {symbol.ticker}")
+
+            # Create Option
+            option = Option.objects.create(symbol=symbol, **validated_data)
+            logger.info(f"Option created with ID: {option.id}")
+            return option
+        except Exception as e:
+            logger.error(f"Failed to create Option: {e}")
+            raise serializers.ValidationError(f"Failed to create Option: {e}")
 
     def update(self, instance, validated_data):
-        symbol_data = validated_data.pop('symbol_data', None)
-        symbol = instance.symbol
-
-        # Update the symbol instance
-        if symbol_data:
-            for attr, value in symbol_data.items():
-                setattr(symbol, attr, value)
-            symbol.save()
-
-        # Update the Equity instance
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        return instance
-    
-# class SymbolReadSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Symbol
-#         fields = ['id', 'ticker', 'security_type', 'created_at', 'updated_at']
-
-#     def to_representation(self, instance):
-#         """Customize the serialization based on the symbol type."""
-#         representation = super().to_representation(instance)
-
-#         if hasattr(instance, 'equity'):
-#             equity_data = EquitySerializer(instance.equity).data
-#             representation.update(equity_data)  # Merge equity data into the main representation
-#         # elif hasattr(instance, 'commodity'):
-#         #     commodity_data = CommoditySerializer(instance.commodity).data
-#         #     representation.update(commodity_data)  # Merge commodity data
-#         elif hasattr(instance, 'cryptocurrency'):
-#             cryptocurrency_data = CryptocurrencySerializer(instance.cryptocurrency).data
-#             representation.update(cryptocurrency_data)  # Merge cryptocurrency data
-#         elif hasattr(instance, 'future'):
-#             future_data = FutureSerializer(instance.future).data
-#             representation.update(future_data)  # Merge cryptocurrency data
-#         elif hasattr(instance, 'option'):
-#             option_data = OptionSerializer(instance.option).data
-#             representation.update(option_data)  # Merge cryptocurrency data
+        """
+        Custom update method for Option instances.
+        Optionally updates nested symbol_data if provided, then updates the Option instance.
+        """
+        logger.info(f"Attempting to update Option with ID: {instance.id}")
         
-#         return representation
+        try:
+            symbol_data = validated_data.pop('symbol_data', None)
+
+            # Update Symbol instance if provided
+            if symbol_data:
+                symbol = instance.symbol
+                for attr, value in symbol_data.items():
+                    setattr(symbol, attr, value)
+                symbol.save()
+                logger.info(f"Symbol updated for Option ID: {instance.id}")
+
+            # Update Option instance with any remaining validated_data
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+            logger.info(f"Option updated successfully with ID: {instance.id}")
+            return instance
+        except Exception as e:
+            logger.error(f"Failed to update Option with ID: {instance.id}: {e}")
+            raise serializers.ValidationError(f"Failed to update Option: {e}")
+
+
     

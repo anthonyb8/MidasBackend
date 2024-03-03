@@ -4,7 +4,7 @@ from .views import (BacktestViewSet, StaticStatsViewSet, TimeseriesStatsViewSet,
 
 router = DefaultRouter()
 router.register(r'backtest', BacktestViewSet)
-router.register(r'staic_stats', StaticStatsViewSet)
+router.register(r'static_stats', StaticStatsViewSet)
 router.register(r'timeseries_stats', TimeseriesStatsViewSet)
 router.register(r'trades', TradeViewSet)
 router.register(r'signals', SignalViewSet)

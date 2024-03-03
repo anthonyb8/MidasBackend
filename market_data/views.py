@@ -1,14 +1,16 @@
+import logging
+from datetime import datetime
+from django.db import IntegrityError
+from django.utils.dateparse import parse_datetime
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.db import IntegrityError
-from .models import BarData
-from .serializers import BarDataSerializer
-from django.utils.dateparse import parse_datetime
 from rest_framework.exceptions import APIException
+from django.db import transaction
+
+from .models import BarData
 from symbols.models import Symbol
-from datetime import datetime
-import logging
+from .serializers import BarDataSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -19,72 +21,35 @@ class BarDataViewSet(viewsets.ModelViewSet):
 
     @action(methods=['post'], detail=False)
     def bulk_create(self, request, *args, **kwargs):
+        logger.info("Received request for bulk creation of BarData.")
         if not isinstance(request.data, list):
+            logger.error("Input data is not a list.")
             return Response({'error': 'Input data should be a list'}, status=status.HTTP_400_BAD_REQUEST)
 
-        created_objects, errors = self.process_data(request.data)
+        created_objects = []
+        errors = []
 
-        if errors:
-            # Consider using HTTP_207_MULTI_STATUS for partial success
-            status_code = status.HTTP_400_BAD_REQUEST
-        else:
-            status_code = status.HTTP_201_CREATED
+        with transaction.atomic():
+            for index, item_data in enumerate(request.data, start=1):
+                serializer = BarDataSerializer(data=item_data)
+                if serializer.is_valid():
+                    try:
+                        obj = serializer.save()
+                        created_objects.append(obj)
+                    except Exception as e:
+                        logger.error(f"Error saving BarData at index {index}: {e}")
+                        errors.append({'index': index, 'error': str(e)})
+                else:
+                    logger.error(f"Validation failed for BarData at index {index}: {serializer.errors}")
+                    errors.append({'index': index, 'errors': serializer.errors})
+                    
+        response_status = status.HTTP_201_CREATED if not errors else status.HTTP_207_MULTI_STATUS
 
         return Response({
             'created': BarDataSerializer(created_objects, many=True).data,
             'errors': errors
-        }, status=status_code)
-
-    def process_data(self, data_list):
-        created_objects = []
-        errors = []
-
-        for index, bar in enumerate(data_list, start=1):
-            ticker = bar.get('symbol')
-            timestamp_str = bar.get('timestamp')
-
-            if not ticker or not timestamp_str:
-                errors.append(self.error_message(index, 'Symbol and timestamp are required.'))
-                continue
-
-            symbol_obj, timestamp, error = self.get_symbol_and_timestamp(ticker, timestamp_str)
-            if error:
-                errors.append(self.error_message(index, error))
-                continue
-
-            obj, error = self.create_or_update_bar_data(symbol_obj, timestamp, bar)
-            if error:
-                errors.append(self.error_message(index, error))
-            else:
-                created_objects.append(obj)
-
-        return created_objects, errors
-
-    def get_symbol_and_timestamp(self, ticker, timestamp_str):
-        try:
-            symbol_obj = Symbol.objects.get(ticker=ticker)
-            timestamp = parse_datetime(timestamp_str)
-            return symbol_obj, timestamp, None
-        except Symbol.DoesNotExist:
-            return None, None, f"Symbol with ticker {ticker} does not exist"
-        except ValueError:
-            return None, None, "Invalid timestamp format."
-
-    def create_or_update_bar_data(self, symbol_obj, timestamp, bar_data):
-        defaults = bar_data.copy()
-        defaults.pop('symbol', None)
-        defaults['timestamp'] = timestamp
-
-        try:
-            obj, created = BarData.objects.update_or_create(
-                symbol=symbol_obj, timestamp=timestamp, defaults=defaults
-            )
-            return obj, None
-        except IntegrityError as e:
-            return None, str(e)
-
-    def error_message(self, index, message):
-        return {'index': index, 'error': message}
+        }, status=status.HTTP_201_CREATED)
+    
     
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -99,7 +64,5 @@ class BarDataViewSet(viewsets.ModelViewSet):
         if start_date and end_date:
             queryset = queryset.filter(timestamp__range=[start_date, end_date])
 
+        logger.info("Custom queryset for BarDataViewSet applied.")
         return queryset
-
-
-

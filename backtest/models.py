@@ -2,7 +2,6 @@ from django.db import models
 from market_data.models import BarData
 import json
 
-
 class Backtest(models.Model):
     strategy_name = models.CharField(max_length=255)
     tickers = models.JSONField(default=list)
@@ -15,40 +14,6 @@ class Backtest(models.Model):
     capital = models.FloatField(null=True, blank=True)
     strategy_allocation = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
-    def fetch_price_data(self):
-        # Assuming there's a HistoricalPriceData model or equivalent
-        # Fetch price data for the symbols and date range of this backtest
-        price_data = BarData.objects.filter(
-            symbol__in=self.tickers,
-            timestamp__gte=self.test_start,
-            timestamp__lte=self.test_end
-        ).order_by('timestamp')
-        return [data.to_dict() for data in price_data]
-        
-    def to_dict(self):
-        return {
-            "parameters": {
-                "strategy_name": self.strategy_name,
-                "tickers": json.loads(self.tickers),  # Ensure the tickers are returned as a list
-                "data_type": self.data_type,
-                "strategy_allocation": self.strategy_allocation,
-                "capital": self.capital,
-                "train_start": self.train_start,
-                "train_end": self.train_end,
-                "test_start": self.test_start,
-                "test_end": self.test_end,
-                "benchmark": json.loads(self.benchmark),  # Ensure the benchmark is returned as a list
-                "created_at": self.created_at.isoformat(),
-            },
-            "static_stats": [stat.to_dict() for stat in self.static_stats.all()],
-            "timeseries_stats": [ts_stat.to_dict() for ts_stat in self.timeseries_stats.all()],
-            "trades": [trade.to_dict() for trade in self.trades.all()],
-            "signals": [signal.to_dict() for signal in self.signals.all()],
-        }
 
 class Trade(models.Model):
     backtest = models.ForeignKey(Backtest, related_name='trades', on_delete=models.CASCADE)
