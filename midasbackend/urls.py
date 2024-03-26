@@ -8,5 +8,6 @@ urlpatterns = [
         path("", include('symbols.urls')),
         path("", include('market_data.urls')),
         path("", include('backtest.urls')),
+        path("", include('TradeSession.urls')),
     ])),
 ]
