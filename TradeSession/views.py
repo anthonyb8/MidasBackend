@@ -60,7 +60,7 @@ class GetAccountAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        orders = list(SESSION_DATA['account'].values())
+        orders = SESSION_DATA['account']
         return Response(orders)
     
 class ClearSessionAPIView(APIView):
