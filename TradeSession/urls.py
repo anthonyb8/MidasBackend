@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import UpdatePositionAPIView, GetPositionsAPIView, UpdateAccountAPIView, GetAccountAPIView, UpdateOrderAPIView, GetOrdersAPIView, ClearSessionAPIView
+from .views import UpdatePositionAPIView, GetPositionsAPIView, UpdateAccountAPIView, GetAccountAPIView, UpdateOrderAPIView, GetOrdersAPIView, ClearSessionAPIView, GetSessionDataAPIView
 
 urlpatterns = [
     path('update_positions', UpdatePositionAPIView.as_view(), name='update-positions'),
@@ -8,5 +8,6 @@ urlpatterns = [
     path('orders', GetOrdersAPIView.as_view(), name='orders'),
     path('update_account', UpdateAccountAPIView.as_view(), name='update-account'),
     path('account', GetAccountAPIView.as_view(), name='account'),
-    path('clear_session', ClearSessionAPIView.as_view(), name='clear-session'),
+    path('session_data', GetSessionDataAPIView.as_view(), name='get-session-data'),
+    path('clear_session', ClearSessionAPIView.as_view(), name='clear-session')
 ]   
