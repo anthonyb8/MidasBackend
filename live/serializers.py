@@ -7,24 +7,14 @@ from symbols.models import Symbol
 from market_data.models import BarData
 from market_data.serializers import BarDataSerializer
 from .services import create_live_session, get_price_data
-from .models import LiveSession, StaticStats, TimeseriesStats, Trade, Signal, TradeInstruction
+from .models import LiveSession, SummaryStats, Trade, Signal, TradeInstruction
 
 logger = logging.getLogger()
 
-class StaticStatsSerializer(serializers.ModelSerializer):
+class SummaryStatsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = StaticStats
-        fields = [
-                    'net_profit', 'total_return','max_drawdown','annual_standard_deviation','ending_equity', 
-                    'total_fees', 'total_trades', "num_winning_trades", "num_lossing_trades", "avg_win_percent", 
-                    "avg_loss_percent","percent_profitable", "profit_and_loss", "profit_factor", "avg_trade_profit", 
-                    'sharpe_ratio', 'sortino_ratio', 'alpha', 'beta'
-                ]
-
-class TimeseriesStatsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TimeseriesStats
-        fields = ['timestamp', 'equity_value', 'percent_drawdown', 'cumulative_return', 'daily_return']
+        model = SummaryStats
+        fields = ["ending_equity", "total_fees", "unrealized_pnl", "realized_pnl"]
 
 class TradeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -67,15 +57,14 @@ class LiveSessionListSerializer(serializers.ModelSerializer):
 
 class LiveSessionSerializer(serializers.ModelSerializer):
     parameters = LiveSessionListSerializer(write_only=True)
-    timeseries_stats = TimeseriesStatsSerializer(many=True)
-    static_stats = StaticStatsSerializer(many=True)
+    summary_stats = SummaryStatsSerializer(many=True)
     trades = TradeSerializer(many=True)
     signals = SignalSerializer(many=True)
     price_data = BarDataSerializer(read_only=True)
 
     class Meta:
         model = LiveSession
-        fields = ['id', 'parameters', 'static_stats', 'trades', 'timeseries_stats', 'signals', 'price_data']
+        fields = ['id', 'parameters', 'summary_stats', 'trades', 'signals', 'price_data']
         
     def validate(self, data):
         logger.info(f"Validating data : {data}")

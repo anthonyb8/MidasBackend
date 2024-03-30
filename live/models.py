@@ -1,6 +1,6 @@
+import json
 from django.db import models
 from market_data.models import BarData
-import json
 
 class LiveSession(models.Model):
     strategy_name = models.CharField(max_length=255)
@@ -39,35 +39,9 @@ class TradeInstruction(models.Model):
     leg_id = models.PositiveIntegerField()
     weight = models.FloatField()
 
-class StaticStats(models.Model):
-    live_session = models.ForeignKey(LiveSession, related_name='static_stats', on_delete=models.CASCADE)
-    # General Stats
-    net_profit = models.FloatField(null=True)
-    total_return = models.FloatField(null=True)
-    max_drawdown = models.FloatField(null=True)
-    annual_standard_deviation = models.FloatField(null=True)
+class SummaryStats(models.Model):
+    live_session = models.ForeignKey(LiveSession, related_name='summary_stats', on_delete=models.CASCADE)
     ending_equity = models.FloatField(null=True)
     total_fees = models.FloatField(null=True)
-    # Trade Stats
-    total_trades = models.IntegerField(null=True)
-    num_winning_trades = models.IntegerField(null=True)
-    num_lossing_trades = models.IntegerField(null=True)
-    avg_win_percent = models.FloatField(null=True)
-    avg_loss_percent = models.FloatField(null=True)
-    percent_profitable = models.FloatField(null=True)
-    profit_and_loss = models.FloatField(null=True)
-    profit_factor = models.FloatField(null=True)
-    avg_trade_profit = models.FloatField(null=True)
-    # Benchmark Stats
-    sharpe_ratio = models.FloatField(null=True)
-    sortino_ratio = models.FloatField(null=True)
-    alpha = models.FloatField(null=True)
-    beta = models.FloatField(null=True)
-
-class TimeseriesStats(models.Model):
-    live_session = models.ForeignKey(LiveSession, related_name='timeseries_stats', on_delete=models.CASCADE)
-    timestamp = models.DateTimeField()
-    equity_value = models.DecimalField(max_digits=15, decimal_places=2, default=0.0)
-    daily_return = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
-    cumulative_return = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
-    percent_drawdown = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
+    unrealized_pnl = models.FloatField(null=True)
+    realized_pnl = models.FloatField(null=True)

@@ -4,9 +4,9 @@ from django.db import transaction
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import LiveSession, StaticStats, TimeseriesStats, Trade, Signal
-from .serializers import (LiveSessionSerializer, StaticStatsSerializer, TradeSerializer, 
-                          TimeseriesStatsSerializer, SignalSerializer, LiveSessionListSerializer)
+from .models import LiveSession, SummaryStats, Trade, Signal
+from .serializers import (LiveSessionSerializer, SummaryStatsSerializer, 
+                          TradeSerializer, SignalSerializer, LiveSessionListSerializer)
 
 logger = logging.getLogger()
 
