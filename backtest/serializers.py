@@ -7,7 +7,7 @@ from symbols.models import Symbol
 from market_data.models import BarData
 from market_data.serializers import BarDataSerializer
 from .services import create_backtest, get_price_data
-from .models import Backtest, StaticStats, TimeseriesStats, Trade, Signal, TradeInstruction
+from .models import Backtest, StaticStats, TimeseriesStats, Trade, Signal, TradeInstruction, RegressionAnalysis
 
 logger = logging.getLogger()
 class StaticStatsSerializer(serializers.ModelSerializer):
@@ -17,13 +17,23 @@ class StaticStatsSerializer(serializers.ModelSerializer):
                     'net_profit', 'total_return','max_drawdown','annual_standard_deviation','ending_equity', 
                     'total_fees', 'total_trades', "num_winning_trades", "num_lossing_trades", "avg_win_percent", 
                     "avg_loss_percent","percent_profitable", "profit_and_loss", "profit_factor", "avg_trade_profit", 
-                    'sharpe_ratio', 'sortino_ratio', 'alpha', 'beta'
+                     'sortino_ratio'
+                ]
+        
+class RegressionAnalysisSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegressionAnalysis
+        fields = [ 
+                    "r_squared", "p_value_alpha","p_value_beta", "risk_free_rate", "alpha", "beta", "sharpe_ratio", 
+                    "annualized_return", "market_contribution", "idiosyncratic_contribution", "total_contribution",
+                    "annualized_volatility", "market_volatility", "idiosyncratic_volatility", "total_volatility", 
+                    "portfolio_dollar_beta", "market_hedge_nmv"
                 ]
 
 class TimeseriesStatsSerializer(serializers.ModelSerializer):
     class Meta:
         model = TimeseriesStats
-        fields = ['timestamp', 'equity_value', 'percent_drawdown', 'cumulative_return', 'daily_return']
+        fields = ['timestamp', 'equity_value', 'percent_drawdown', 'cumulative_return', 'period_return', 'daily_benchmark_return', 'daily_strategy_return']
 
 class TradeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -68,13 +78,14 @@ class BacktestSerializer(serializers.ModelSerializer):
     parameters = BacktestListSerializer(write_only=True)
     timeseries_stats = TimeseriesStatsSerializer(many=True)
     static_stats = StaticStatsSerializer(many=True)
+    regression_stats = RegressionAnalysisSerializer(many=True)
     trades = TradeSerializer(many=True)
     signals = SignalSerializer(many=True)
     price_data = BarDataSerializer(read_only=True)
 
     class Meta:
         model = Backtest
-        fields = ['id', 'parameters', 'static_stats', 'trades', 'timeseries_stats', 'signals', 'price_data']
+        fields = ['id', 'parameters', 'static_stats', 'regression_stats', 'trades', 'timeseries_stats', 'signals', 'price_data']
         
     def validate(self, data):
         logger.info(f"Validating data : {data}")

@@ -2,7 +2,7 @@ import logging
 from django.db import transaction
 from django.core.exceptions import ValidationError
 
-from .models import Backtest, StaticStats, TimeseriesStats, Trade, Signal, TradeInstruction
+from .models import Backtest, StaticStats, TimeseriesStats, Trade, Signal, TradeInstruction, RegressionAnalysis
 from market_data.serializers import BarDataSerializer
 from market_data.models import BarData
 from symbols.models import Symbol
@@ -18,6 +18,7 @@ def create_backtest(validated_data):
             # Extract nested data
             parameters = validated_data.pop('parameters', {})
             static_stats_data = validated_data.pop('static_stats', [])
+            regression_data = validated_data.pop('regression_stats', [])
             timeseries_stats_data = validated_data.pop('timeseries_stats', [])
             trades_data = validated_data.pop('trades', [])
             signals_data = validated_data.pop('signals', [])
@@ -30,6 +31,11 @@ def create_backtest(validated_data):
             for stat_data in static_stats_data:
                 StaticStats.objects.create(backtest=backtest, **stat_data)
             logger.info("Static stats created.")
+            
+            # Nested object creation for RegressionAnalysis
+            for stat_data in regression_data:
+                RegressionAnalysis.objects.create(backtest=backtest, **stat_data)
+            logger.info("Regression stats created.")
 
             # Nested object creation for TimeseriesStats
             for stat_data in timeseries_stats_data:

@@ -1,5 +1,7 @@
 from django.db import models
 from market_data.models import BarData
+from django.core.validators import MinValueValidator, MaxValueValidator
+from decimal import Decimal
 import json
 
 class Backtest(models.Model):
@@ -58,16 +60,38 @@ class StaticStats(models.Model):
     profit_and_loss = models.FloatField(null=True)
     profit_factor = models.FloatField(null=True)
     avg_trade_profit = models.FloatField(null=True)
-    # Benchmark Stats
-    sharpe_ratio = models.FloatField(null=True)
     sortino_ratio = models.FloatField(null=True)
-    alpha = models.FloatField(null=True)
-    beta = models.FloatField(null=True)
+    # Benchmark Stats
+    # sharpe_ratio = models.FloatField(null=True)
+    # alpha = models.FloatField(null=True)
+    # beta = models.FloatField(null=True)
 
 class TimeseriesStats(models.Model):
     backtest = models.ForeignKey(Backtest, related_name='timeseries_stats', on_delete=models.CASCADE)
     timestamp = models.DateTimeField()
     equity_value = models.DecimalField(max_digits=15, decimal_places=2, default=0.0)
-    daily_return = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
+    period_return = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
     cumulative_return = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
     percent_drawdown = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
+    daily_benchmark_return = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
+    daily_strategy_return = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
+
+class RegressionAnalysis(models.Model):
+    backtest = models.ForeignKey(Backtest, related_name='regression_stats', on_delete=models.CASCADE)
+    r_squared = models.DecimalField(max_digits=10, decimal_places=8, validators=[MinValueValidator(Decimal('0.0')), MaxValueValidator(Decimal('1.0'))])
+    p_value_alpha = models.DecimalField(max_digits=10, decimal_places=8)
+    p_value_beta = models.DecimalField(max_digits=10, decimal_places=8)
+    risk_free_rate = models.DecimalField(max_digits=5, decimal_places=4)
+    alpha = models.DecimalField(max_digits=10, decimal_places=8)
+    beta = models.DecimalField(max_digits=10, decimal_places=8)
+    sharpe_ratio = models.DecimalField(max_digits=10, decimal_places=8)
+    annualized_return = models.DecimalField(max_digits=10, decimal_places=8)
+    market_contribution = models.DecimalField(max_digits=10, decimal_places=8)
+    idiosyncratic_contribution = models.DecimalField(max_digits=10, decimal_places=8)
+    total_contribution = models.DecimalField(max_digits=10, decimal_places=8)
+    annualized_volatility = models.DecimalField(max_digits=10, decimal_places=8)
+    market_volatility = models.DecimalField(max_digits=10, decimal_places=8)
+    idiosyncratic_volatility = models.DecimalField(max_digits=10, decimal_places=8)
+    total_volatility = models.DecimalField(max_digits=10, decimal_places=8)
+    portfolio_dollar_beta = models.DecimalField(max_digits=15, decimal_places=8)
+    market_hedge_nmv = models.DecimalField(max_digits=15, decimal_places=8) 
