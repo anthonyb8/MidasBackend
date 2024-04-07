@@ -9,7 +9,7 @@ INSTALLED_APPS = [
     'market_data',
     'backtest',
     'live',
-    'TradeSession',
+    'live_session',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
