@@ -62,11 +62,4 @@ class AccountSummary(models.Model):
     end_FuturesPNL = models.DecimalField(max_digits=15, decimal_places=4)
     end_NetLiquidation = models.DecimalField(max_digits=15, decimal_places=4)
     end_TotalCashBalance = models.DecimalField(max_digits=15, decimal_places=4)
-    end_UnrealizedPnL = models.DecimalField(max_digits=15, decimal_places=4) 
-
-# class SummaryStats(models.Model):
-#     live_session = models.ForeignKey(LiveSession, related_name='summary_stats', on_delete=models.CASCADE)
-#     ending_equity = models.FloatField(null=True)
-#     total_fees = models.FloatField(null=True)
-#     unrealized_pnl = models.FloatField(null=True)
-#     realized_pnl = models.FloatField(null=True)
+    end_UnrealizedPnL = models.DecimalField(max_digits=16, decimal_places=4) 
