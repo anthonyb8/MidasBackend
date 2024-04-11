@@ -7,19 +7,21 @@ from symbols.models import Symbol
 from market_data.models import BarData
 from market_data.serializers import BarDataSerializer
 from .services import create_live_session, get_price_data
-from .models import LiveSession, SummaryStats, Trade, Signal, TradeInstruction
+from .models import LiveSession, AccountSummary, Trade, Signal, TradeInstruction
 
 logger = logging.getLogger()
 
-class SummaryStatsSerializer(serializers.ModelSerializer):
+class AccountSummarySerializer(serializers.ModelSerializer):
     class Meta:
-        model = SummaryStats
-        fields = ["ending_equity", "total_fees", "unrealized_pnl", "realized_pnl"]
+        model = AccountSummary
+        fields = ["currency", "start_timestamp", "start_BuyingPower", "start_ExcessLiquidity", "start_FullAvailableFunds", "start_FullInitMarginReq", "start_FullMaintMarginReq", 
+                  "start_FuturesPNL", "start_NetLiquidation", "start_TotalCashBalance", "start_UnrealizedPnL", "end_timestamp", "end_BuyingPower", "end_ExcessLiquidity", "end_FullAvailableFunds",
+                  "end_FullInitMarginReq", "end_FullMaintMarginReq", "end_FuturesPNL", "end_NetLiquidation", "end_TotalCashBalance", "end_UnrealizedPnL"]
 
 class TradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trade
-        fields = ['trade_id', 'leg_id', 'timestamp', 'ticker', 'quantity', 'price', 'cost', 'action', 'fees']
+        fields = ['timestamp', 'ticker', 'quantity', 'price', 'cost', 'action', 'fees']
 
 class TradeInstructionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -57,14 +59,14 @@ class LiveSessionListSerializer(serializers.ModelSerializer):
 
 class LiveSessionSerializer(serializers.ModelSerializer):
     parameters = LiveSessionListSerializer(write_only=True)
-    summary_stats = SummaryStatsSerializer(many=True)
+    account_data = AccountSummarySerializer(many=True)
     trades = TradeSerializer(many=True)
     signals = SignalSerializer(many=True)
     price_data = BarDataSerializer(read_only=True)
 
     class Meta:
         model = LiveSession
-        fields = ['id', 'parameters', 'summary_stats', 'trades', 'signals', 'price_data']
+        fields = ['id', 'parameters', 'account_data', 'trades', 'signals', 'price_data']
         
     def validate(self, data):
         logger.info(f"Validating data : {data}")

@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from symbols.models import Symbol
 from market_data.models import BarData
 from market_data.serializers import BarDataSerializer
-from .models import LiveSession, SummaryStats, Trade, Signal, TradeInstruction
+from .models import LiveSession, AccountSummary, Trade, Signal, TradeInstruction
 
 logger = logging.getLogger()
 
@@ -17,7 +17,7 @@ def create_live_session(validated_data):
 
             # Extract nested data
             parameters = validated_data.pop('parameters', {})
-            static_stats_data = validated_data.pop('summary_stats', [])
+            account_data = validated_data.pop('account_data', [])
             trades_data = validated_data.pop('trades', [])
             signals_data = validated_data.pop('signals', [])
 
@@ -26,9 +26,9 @@ def create_live_session(validated_data):
             logger.info(f"live_session instance created with ID: {live_session.id}")
 
             # Nested object creation for SummaryStats
-            for stat_data in static_stats_data:
-                SummaryStats.objects.create(live_session=live_session, **stat_data)
-            logger.info("Summary stats created.")
+            for stat_data in account_data:
+                AccountSummary.objects.create(live_session=live_session, **stat_data)
+            logger.info("Account summary created.")
 
             # Nested object creation for Trades
             for trade_data in trades_data:

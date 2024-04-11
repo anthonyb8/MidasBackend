@@ -1,12 +1,10 @@
 import logging
-from rest_framework import viewsets
-from django.db import transaction
-from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import viewsets
+from rest_framework.response import Response
 
-from .models import LiveSession, SummaryStats, Trade, Signal
-from .serializers import (LiveSessionSerializer, SummaryStatsSerializer, 
-                          TradeSerializer, SignalSerializer, LiveSessionListSerializer)
+from .models import LiveSession
+from .serializers import (LiveSessionSerializer, LiveSessionListSerializer)
 
 logger = logging.getLogger()
 
