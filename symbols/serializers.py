@@ -1,358 +1,318 @@
-from rest_framework import serializers
-from .models import Symbol, Equity, Cryptocurrency, Future, Option, AssetClass, Currency, Index
-from rest_framework.exceptions import APIException
 import logging
+from django.db import transaction
+from rest_framework import serializers
+from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import APIException
+from .models import Symbol, Equity, Cryptocurrency, Future, Option, AssetClass, Currency, Index, SecurityType, Venue, Industry, ContractUnits
 
 logger = logging.getLogger(__name__)
 
+# AssetDetails
 class AssetClassSerializer(serializers.ModelSerializer):
     class Meta:
         model = AssetClass
-        fields = ['id', 'name', 'description']
+        fields = ['id', 'value']
 
 class CurrencySerializer(serializers.ModelSerializer):
     class Meta:
         model = Currency
-        fields = ['id', 'code', 'name', 'region']
+        fields = ['id', 'value']
 
-class SymbolReadSerializer(serializers.ModelSerializer):
+class SecurityTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SecurityType
+        fields = ['id', 'value']
+
+class ContractUnitsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContractUnits
+        fields = ['id', 'value']
+
+class VenueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Venue
+        fields = ['id', 'value']
+
+class IndustrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Industry
+        fields = ['id', 'value']
+
+# Assets
+class SymbolSerializer(serializers.ModelSerializer):
+    security_type = serializers.SlugRelatedField(slug_field="value", queryset=SecurityType.objects.all())
+    symbol_data = serializers.DictField(required=False, write_only=True) 
     class Meta:
         model = Symbol
-        fields = ['id', 'ticker', 'security_type', 'created_at', 'updated_at']
-
-class SymbolWriteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Symbol
-        fields = ['id', 'ticker', 'security_type', 'created_at', 'updated_at']
-
-class IndexSerializer(serializers.ModelSerializer):
-    asset_class = serializers.SlugRelatedField(
-        slug_field='name',
-        queryset=AssetClass.objects.all(),
-        write_only=True
-    )
-    currency = serializers.SlugRelatedField(
-        slug_field='code',
-        queryset=Currency.objects.all(),
-        write_only=True
-    )
-    
-    symbol_data = SymbolWriteSerializer(write_only=True)
-    ticker = serializers.SerializerMethodField()
-    asset_class_name = serializers.SerializerMethodField()
-    currency_code = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Index
-        fields = ['symbol_data','ticker', 'name', 'asset_class', 'currency', 'asset_class_name', 'currency_code']
-
-    def get_asset_class_name(self, obj):
-        return obj.asset_class.name if obj.asset_class else None
-    
-    def get_ticker(self, obj):
-        return obj.symbol.ticker if obj.symbol else None
-
-    def get_currency_code(self, obj):
-        return obj.currency.code if obj.currency else None
+        fields = ['ticker', 'security_type', 'symbol_data']
 
     def create(self, validated_data):
-        logger.info("Attempting to create a new Index.")
-        try:
-            # Create associated symbol
-            symbol_data = validated_data.pop('symbol_data')
-            symbol = Symbol.objects.create(**symbol_data)
-            logger.info(f"Symbol sucessfully created: {symbol}")
-            
-            # Create benchmark and link to symbol
-            index = Index.objects.create(symbol=symbol, **validated_data)
-            logger.info(f"Index created with ID: {index.id}")
-            return index
-        except AssetClass.DoesNotExist as e:
-            logger.info(e)
-            raise APIException("The specified asset class does not exist.")
-        except Currency.DoesNotExist:
-            logger.info(e)
-            raise APIException("The specified currency does not exist.")
-        except Exception as e:
-            logger.error(f"Failed to create Index: {e}")
-            raise APIException(f"Failed to create Index due to an error: {str(e)}")
+        symbol_data = validated_data.pop('symbol_data', None)
+        with transaction.atomic():
+            symbol = Symbol.objects.create(**validated_data)
+            if symbol.security_type.value == "STOCK":
+                if symbol_data:
+                    symbol_data['symbol'] = symbol.pk  # Pass symbol instance to equity_data
+                    equity_serializer = EquitySerializer(data=symbol_data)
+                    if equity_serializer.is_valid():
+                        equity_serializer.save()
+                    else:
+                        raise serializers.ValidationError(equity_serializer.errors)
+            elif symbol.security_type.value == "FUTURE":
+                if symbol_data:
+                    symbol_data['symbol'] = symbol.pk  # Pass symbol instance to equity_data
+                    future_serializer = FutureSerializer(data=symbol_data)
+                    if future_serializer.is_valid():
+                        future_serializer.save()
+                    else:
+                        raise serializers.ValidationError(future_serializer.errors)
+            elif symbol.security_type.value == "OPTION":
+                if symbol_data:
+                    symbol_data['symbol'] = symbol.pk  # Pass symbol instance to equity_data
+                    option_serializer = OptionSerializer(data=symbol_data)
+                    if option_serializer.is_valid():
+                        option_serializer.save()
+                    else:
+                        raise serializers.ValidationError(option_serializer.errors)
+            elif symbol.security_type.value == "CRYPTOCURRENCY":
+                if symbol_data:
+                    symbol_data['symbol'] = symbol.pk  # Pass symbol instance to equity_data
+                    cryptocurrency_serializer = CryptocurrencySerializer(data=symbol_data)
+                    if cryptocurrency_serializer.is_valid():
+                        cryptocurrency_serializer.save()
+                    else:
+                        raise serializers.ValidationError(cryptocurrency_serializer.errors)
+            elif symbol.security_type.value == "INDEX":
+                if symbol_data:
+                    symbol_data['symbol'] = symbol.pk  # Pass symbol instance to equity_data
+                    index_serializer = IndexSerializer(data=symbol_data)
+                    if index_serializer.is_valid():
+                        index_serializer.save()
+                    else:
+                        raise serializers.ValidationError(index_serializer.errors)
+            else:
+                raise serializers.ValidationError(detail=f"Model does not exist for given security_type.")
 
+        return symbol
+    
     def update(self, instance, validated_data):
-        """
-        Custom update method for Benchmark instances.
-        Allows switching to a different AssetClass or Currency without editing them directly.
-        """
-        logger.info(f"Attempting to update Index with ID: {instance.id}")
-        try:
-            # Optional: Update Symbol data if provided
-            symbol_obj = validated_data.pop('symbol_data', None)
-            if symbol_obj:
-                symbol = instance.ticker
-                for attr, value in symbol_obj.items():
-                    setattr(symbol, attr, value)
-                symbol.save()
-
-            # Optional: Update AssetClass if a new name is provided
-            asset_class_obj = validated_data.pop('asset_class', None)
-            if asset_class_obj:
-                try:
-                    # asset_class = AssetClass.objects.get(name=asset_class_name)
-                    instance.asset_class = asset_class_obj
-                except AssetClass.DoesNotExist:
-                    raise APIException("The specified asset class does not exist.")
-
-            # Optional: Update Currency if a new code is provided
-            currency_obj = validated_data.pop('currency', None)
-            if currency_obj:
-                try:
-                    # currency = Currency.objects.get(code=currency_code)
-                    instance.currency = currency_obj
-                except Currency.DoesNotExist:
-                    raise APIException("The specified currency does not exist.")
-
-            # Save any other updated fields of the Benchmark instance
+        symbol_data = validated_data.pop('symbol_data', None)
+        with transaction.atomic():
+            # Update the symbol instance
+            instance.ticker = validated_data.get('ticker', instance.ticker)
+            instance.security_type = validated_data.get('security_type', instance.security_type)
             instance.save()
-            logger.info(f"Index updated successfully with ID: {instance.id}")
-            return instance
-        except Exception as e:
-            logger.error(f"Failed to update Index with ID: {instance.id}: {e}")
-            raise serializers.ValidationError(f"Failed to update Index due to an error: {str(e)}")
+
+            if instance.security_type.value == "STOCK":
+                # Delegate update or creation of related equity
+                if symbol_data:
+                    equity = getattr(instance, 'equity', None)
+                    if equity:
+                        # Pass the existing instance for updating
+                        equity_serializer = EquitySerializer(equity, data=symbol_data, partial=True)
+                    else:
+                        # Pass new data for creation
+                        symbol_data['symbol'] = instance
+                        equity_serializer = EquitySerializer(data=symbol_data)
+
+                    if equity_serializer.is_valid():
+                        equity_serializer.save()
+                    else:
+                        raise serializers.ValidationError(equity_serializer.errors)
+            elif instance.security_type.value == "FUTURE":
+                # Delegate update or creation of related equity
+                if symbol_data:
+                    future = getattr(instance, 'future', None)
+                    if future:
+                        # Pass the existing instance for updating
+                        future_serializer = FutureSerializer(future, data=symbol_data, partial=True)
+                    else:
+                        # Pass new data for creation
+                        symbol_data['symbol'] = instance
+                        future_serializer = FutureSerializer(data=symbol_data)
+
+                    if future_serializer.is_valid():
+                        future_serializer.save()
+                    else:
+                        raise serializers.ValidationError(future_serializer.errors)
+            elif instance.security_type.value == "OPTION":
+                # Delegate update or creation of related equity
+                if symbol_data:
+                    option = getattr(instance, 'option', None)
+                    if option:
+                        # Pass the existing instance for updating
+                        option_serializer = OptionSerializer(option, data=symbol_data, partial=True)
+                    else:
+                        # Pass new data for creation
+                        symbol_data['symbol'] = instance
+                        option_serializer = OptionSerializer(data=symbol_data)
+
+                    if option_serializer.is_valid():
+                        option_serializer.save()
+                    else:
+                        raise serializers.ValidationError(option_serializer.errors)
+            elif instance.security_type.value == "CRYPTOCURRENCY":
+                # Delegate update or creation of related equity
+                if symbol_data:
+                    cryptocurrency = getattr(instance, 'cryptocurrency', None)
+                    if cryptocurrency:
+                        # Pass the existing instance for updating
+                        cryptocurrency_serializer = CryptocurrencySerializer(cryptocurrency, data=symbol_data, partial=True)
+                    else:
+                        # Pass new data for creation
+                        symbol_data['symbol'] = instance
+                        cryptocurrency_serializer = CryptocurrencySerializer(data=symbol_data)
+
+                    if cryptocurrency_serializer.is_valid():
+                        cryptocurrency_serializer.save()
+                    else:
+                        raise serializers.ValidationError(cryptocurrency_serializer.errors)
+            elif instance.security_type.value == "INDEX":
+                # Delegate update or creation of related equity
+                if symbol_data:
+                    index = getattr(instance, 'index', None)
+                    if index:
+                        # Pass the existing instance for updating
+                        index_serializer = IndexSerializer(index, data=symbol_data, partial=True)
+                    else:
+                        # Pass new data for creation
+                        symbol_data['symbol'] = instance
+                        index_serializer = IndexSerializer(data=symbol_data)
+
+                    if index_serializer.is_valid():
+                        index_serializer.save()
+                    else:
+                        raise serializers.ValidationError(index_serializer.errors)
+            else:
+                raise serializers.ValidationError(detail=f"Model does not exist for given security_type.")
+        return instance
 
 class EquitySerializer(serializers.ModelSerializer):
-    symbol_data = SymbolWriteSerializer(write_only=True)
-    ticker = serializers.SerializerMethodField()
+    venue = serializers.SlugRelatedField(slug_field="value", queryset=Venue.objects.all(), required=False)
+    currency = serializers.SlugRelatedField(slug_field="value", queryset=Currency.objects.all(), required=False)
+    industry = serializers.SlugRelatedField(slug_field="value", queryset=Industry.objects.all(), required=False)
+    symbol = serializers.PrimaryKeyRelatedField(queryset=Symbol.objects.all())
+    # symbol = serializers.SlugRelatedField(slug_field="ticker", queryset=Symbol.objects.all(), required=False)
 
     class Meta:
         model = Equity
-        fields = ['symbol_data','ticker', 'company_name', 'exchange', 'currency', 'industry', 'market_cap', 'shares_outstanding', 'created_at', 'updated_at']
-    
-    def get_ticker(self, obj):
-        return obj.symbol.ticker if obj.symbol else None
+        fields = ['company_name', 'venue', 'currency', 'industry', 'market_cap', 'shares_outstanding', 'symbol']
 
     def create(self, validated_data):
-        """
-        Custom create method for Equity instances.
-        Extracts symbol_data, creates a Symbol instance, and then creates an Equity instance.
-        """
-        logger.info("Attempting to create new Equity with data: %s", validated_data)
-        try:
-            # Create Symbol
-            symbol_data = validated_data.pop('symbol_data')
-            symbol = Symbol.objects.create(**symbol_data)
-            logger.info(f"Symbol created with ticker: {symbol.ticker}")
-
-            # Create Equity
-            equity = Equity.objects.create(symbol=symbol, **validated_data)
-            logger.info(f"Equity created with ID: {equity.id}")
-            return equity
-        except Exception as e:
-            logger.error(f"Failed to create Equity: {e}")
-            raise serializers.ValidationError(f"Failed to create Equity: {e}")
+        symbol = validated_data.get('symbol', None)
+        equity = Equity.objects.create(**validated_data)
+        return equity
 
     def update(self, instance, validated_data):
-        """
-        Custom update method for Equity instances.
-        Optionally updates nested symbol_data if provided, then updates the Equity instance.
-        """
-        logger.info(f"Attempting to update Equity with ID: {instance.id}")
-        
-        try:
-            symbol_data = validated_data.pop('symbol_data', None)
-
-            # Update Symbol instance if provided
-            if symbol_data:
-                symbol = instance.symbol
-                for attr, value in symbol_data.items():
-                    setattr(symbol, attr, value)
-                symbol.save()
-                logger.info(f"Symbol updated for Equity ID: {instance.id}")
-
-            # Update Equity instance with any remaining validated_data
-            for attr, value in validated_data.items():
-                setattr(instance, attr, value)
-            instance.save()
-            logger.info(f"Equity updated successfully with ID: {instance.id}")
-            return instance
-        except Exception as e:
-            logger.error(f"Failed to update Equity with ID: {instance.id}: {e}")
-            raise serializers.ValidationError(f"Failed to update Equity: {e}")
-
+        instance.company_name = validated_data.get('company_name', instance.company_name)
+        instance.venue = validated_data.get('venue', instance.venue)
+        instance.currency = validated_data.get('currency', instance.currency)
+        instance.industry = validated_data.get('industry', instance.industry)
+        instance.market_cap = validated_data.get('market_cap', instance.market_cap)
+        instance.shares_outstanding = validated_data.get('shares_outstanding', instance.shares_outstanding)
+        instance.save()
+        return instance
+    
 class FutureSerializer(serializers.ModelSerializer):
-    symbol_data = SymbolWriteSerializer(write_only=True)
-    ticker = serializers.SerializerMethodField()
+    venue = serializers.SlugRelatedField(slug_field="value", queryset=Venue.objects.all(), required=False)
+    currency = serializers.SlugRelatedField(slug_field="value", queryset=Currency.objects.all(), required=False)
+    # industry = serializers.SlugRelatedField(slug_field="value", queryset=Industry.objects.all(), required=False)
+    contract_units = serializers.SlugRelatedField(slug_field="value", queryset=ContractUnits.objects.all(), required=False)
+    symbol = serializers.PrimaryKeyRelatedField(queryset=Symbol.objects.all())
 
     class Meta:
         model = Future
-        fields = ['symbol_data','ticker','product_code','product_name', 'exchange','currency','contract_size','contract_units','tick_size','min_price_fluctuation', 'continuous','created_at','updated_at']
+        fields = ['symbol', 'product_code', 'product_name', 'venue', 'currency', 'contract_size', 'contract_units', 'tick_size', 'min_price_fluctuation', 'continuous']
 
-    def get_ticker(self, obj):
-        return obj.symbol.ticker if obj.symbol else None
-    
     def create(self, validated_data):
-        """
-        Custom create method for Future instances.
-        Extracts symbol_data, creates a Symbol instance, and then creates an Future instance.
-        """
-        logger.info("Attempting to create new Future with data: %s", validated_data)
-        try:
-            # Create Symbol
-            symbol_data = validated_data.pop('symbol_data')
-            symbol = Symbol.objects.create(**symbol_data)
-            logger.info(f"Symbol created with ticker: {symbol.ticker}")
+        # Create the Future instance using validated data
+        future = Future.objects.create(**validated_data)
+        return future
 
-            # Create Future
-            future = Future.objects.create(symbol=symbol, **validated_data)
-            logger.info(f"Future created with ID: {future.id}")
-            return future
-        except Exception as e:
-            logger.error(f"Failed to create Future: {e}")
-            raise serializers.ValidationError(f"Failed to create Future: {e}")
-        
     def update(self, instance, validated_data):
-        """
-        Custom update method for Future instances.
-        Optionally updates nested symbol_data if provided, then updates the Future instance.
-        """
-        logger.info(f"Attempting to update Future with ID: {instance.id}")
-        
-        try:
-            symbol_data = validated_data.pop('symbol_data', None)
-
-            # Update Symbol instance if provided
-            if symbol_data:
-                symbol = instance.symbol
-                for attr, value in symbol_data.items():
-                    setattr(symbol, attr, value)
-                symbol.save()
-                logger.info(f"Symbol updated for Future ID: {instance.id}")
-
-            # Update Future instance with any remaining validated_data
-            for attr, value in validated_data.items():
-                setattr(instance, attr, value)
-            instance.save()
-            logger.info(f"Future updated successfully with ID: {instance.id}")
-            return instance
-        except Exception as e:
-            logger.error(f"Failed to update Future with ID: {instance.id}: {e}")
-            raise serializers.ValidationError(f"Failed to update Future: {e}")
-
-class CryptocurrencySerializer(serializers.ModelSerializer):
-    symbol_data = SymbolWriteSerializer(write_only=True)
-    ticker = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Cryptocurrency
-        fields = ['symbol_data','ticker', 'cryptocurrency_name', 'circulating_supply', 'market_cap', 'total_supply', 'max_supply', 'description', 'created_at', 'updated_at']
+        # Update fields if present in validated_data or keep existing
+        instance.product_code = validated_data.get('product_code', instance.product_code)
+        instance.product_name = validated_data.get('product_name', instance.product_name)
+        instance.venue = validated_data.get('venue', instance.venue)
+        instance.currency = validated_data.get('currency', instance.currency)
+        instance.contract_size = validated_data.get('contract_size', instance.contract_size)
+        instance.contract_units = validated_data.get('contract_units', instance.contract_units)
+        instance.tick_size = validated_data.get('tick_size', instance.tick_size)
+        instance.min_price_fluctuation = validated_data.get('min_price_fluctuation', instance.min_price_fluctuation)
+        instance.continuous = validated_data.get('continuous', instance.continuous)
+        instance.save()
+        return instance
     
-    def get_ticker(self, obj):
-        return obj.symbol.ticker if obj.symbol else None
-    
-    def create(self, validated_data):
-        """
-        Custom create method for Cryptocurrency instances.
-        Extracts symbol_data, creates a Symbol instance, and then creates an Cryptocurrency instance.
-        """
-        logger.info("Attempting to create new Cryptocurrency with data: %s", validated_data)
-        try:
-            # Create Symbol
-            symbol_data = validated_data.pop('symbol_data')
-            symbol = Symbol.objects.create(**symbol_data)
-            logger.info(f"Symbol created with ticker: {symbol.ticker}")
-
-            # Create Cryptocurrency
-            cryptocurrency = Cryptocurrency.objects.create(symbol=symbol, **validated_data)
-            logger.info(f"Cryptocurrency created with ID: {cryptocurrency.id}")
-            return cryptocurrency
-        except Exception as e:
-            logger.error(f"Failed to create Cryptocurrency: {e}")
-            raise serializers.ValidationError(f"Failed to create Cryptocurrency: {e}")
-        
-    def update(self, instance, validated_data):
-        """
-        Custom update method for Cryptocurrency instances.
-        Optionally updates nested symbol_data if provided, then updates the Cryptocurrency instance.
-        """
-        logger.info(f"Attempting to update Cryptocurrency with ID: {instance.id}")
-        
-        try:
-            symbol_data = validated_data.pop('symbol_data', None)
-
-            # Update Symbol instance if provided
-            if symbol_data:
-                symbol = instance.symbol
-                for attr, value in symbol_data.items():
-                    setattr(symbol, attr, value)
-                symbol.save()
-                logger.info(f"Symbol updated for Cryptocurrency ID: {instance.id}")
-
-            # Update Cryptocurrency instance with any remaining validated_data
-            for attr, value in validated_data.items():
-                setattr(instance, attr, value)
-            instance.save()
-            logger.info(f"Cryptocurrency updated successfully with ID: {instance.id}")
-            return instance
-        except Exception as e:
-            logger.error(f"Failed to update Cryptocurrency with ID: {instance.id}: {e}")
-            raise serializers.ValidationError(f"Failed to update Cryptocurrency: {e}")
-
 class OptionSerializer(serializers.ModelSerializer):
-    symbol_data = SymbolWriteSerializer(write_only=True)
-    ticker = serializers.SerializerMethodField()
+    venue = serializers.SlugRelatedField(slug_field="value", queryset=Venue.objects.all(), required=False)
+    currency = serializers.SlugRelatedField(slug_field="value", queryset=Currency.objects.all(), required=False)
+    symbol = serializers.PrimaryKeyRelatedField(queryset=Symbol.objects.all())
 
     class Meta:
         model = Option
-        fields = ['symbol_data','ticker', 'strike_price', 'expiration_date', 'option_type', 'contract_size','underlying_name','exchange','created_at','updated_at']
-    
-    def get_ticker(self, obj):
-        return obj.symbol.ticker if obj.symbol else None
-    
-    def create(self, validated_data):
-        """
-        Custom create method for Option instances.
-        Extracts symbol_data, creates a Symbol instance, and then creates an Option instance.
-        """
-        logger.info("Attempting to create new Option with data: %s", validated_data)
-        try:
-            # Create Symbol
-            symbol_data = validated_data.pop('symbol_data')
-            symbol = Symbol.objects.create(**symbol_data)
-            logger.info(f"Symbol created with ticker: {symbol.ticker}")
+        fields = ['symbol','underlying_name', 'expiration_date','strike_price','contract_size','currency', 'venue','option_type']
 
-            # Create Option
-            option = Option.objects.create(symbol=symbol, **validated_data)
-            logger.info(f"Option created with ID: {option.id}")
-            return option
-        except Exception as e:
-            logger.error(f"Failed to create Option: {e}")
-            raise serializers.ValidationError(f"Failed to create Option: {e}")
+    def create(self, validated_data):
+        # Create the Future instance using validated data
+        option = Option.objects.create(**validated_data)
+        return option
 
     def update(self, instance, validated_data):
-        """
-        Custom update method for Option instances.
-        Optionally updates nested symbol_data if provided, then updates the Option instance.
-        """
-        logger.info(f"Attempting to update Option with ID: {instance.id}")
-        
-        try:
-            symbol_data = validated_data.pop('symbol_data', None)
+        # Update fields if present in validated_data or keep existing
+        instance.underlying_name = validated_data.get('underlying_name', instance.underlying_name) 
+        instance.expiration_date = validated_data.get('expiration_date', instance.expiration_date)
+        instance.strike_price = validated_data.get('strike_price', instance.strike_price)
+        instance.contract_size = validated_data.get('contract_size', instance.contract_size)
+        instance.currency = validated_data.get('currency', instance.currency)
+        instance.venue = validated_data.get('venue', instance.venue)
+        instance.option_type = validated_data.get('option_type', instance.option_type)
+        instance.save()
+        return instance
 
-            # Update Symbol instance if provided
-            if symbol_data:
-                symbol = instance.symbol
-                for attr, value in symbol_data.items():
-                    setattr(symbol, attr, value)
-                symbol.save()
-                logger.info(f"Symbol updated for Option ID: {instance.id}")
+class CryptocurrencySerializer(serializers.ModelSerializer):
+    venue = serializers.SlugRelatedField(slug_field="value", queryset=Venue.objects.all(), required=False)
+    currency = serializers.SlugRelatedField(slug_field="value", queryset=Currency.objects.all(), required=False)
+    symbol = serializers.PrimaryKeyRelatedField(queryset=Symbol.objects.all())
 
-            # Update Option instance with any remaining validated_data
-            for attr, value in validated_data.items():
-                setattr(instance, attr, value)
-            instance.save()
-            logger.info(f"Option updated successfully with ID: {instance.id}")
-            return instance
-        except Exception as e:
-            logger.error(f"Failed to update Option with ID: {instance.id}: {e}")
-            raise serializers.ValidationError(f"Failed to update Option: {e}")
+    class Meta:
+        model = Cryptocurrency
+        fields = ['symbol', 'name', 'venue', 'currrency', 'market_cap',  'circulating_supply','total_supply', 'max_supply']
 
+    def create(self, validated_data):
+        crypto = Cryptocurrency.objects.create(**validated_data)
+        return crypto
 
+    def update(self, instance, validated_data):
+        # Update fields if present in validated_data or keep existing
+        instance.name = validated_data.get('name', instance.name) 
+        instance.venue = validated_data.get('venue', instance.venue)
+        instance.currency = validated_data.get('currency', instance.currency)
+        instance.market_cap = validated_data.get('market_cap', instance.market_cap)
+        instance.circulating_supply = validated_data.get('circulating_supply', instance.circulating_supply)
+        instance.total_supply = validated_data.get('total_supply', instance.total_supply)
+        instance.max_supply = validated_data.get('max_supply', instance.max_supply)
+        instance.save()
+        return instance
     
+class IndexSerializer(serializers.ModelSerializer):
+    currency = serializers.SlugRelatedField(slug_field="value", queryset=Currency.objects.all(), required=False)
+    venue = serializers.SlugRelatedField(slug_field="value", queryset=Venue.objects.all(), required=False)
+    asset_class = serializers.SlugRelatedField(slug_field="value", queryset=AssetClass.objects.all(), required=False)
+    symbol = serializers.PrimaryKeyRelatedField(queryset=Symbol.objects.all())
+    class Meta:
+        model = Index
+        fields = ['symbol','name', 'currency','asset_class', 'venue']
+
+    def create(self, validated_data):
+        index = Index.objects.create(**validated_data)
+        return index
+
+    def update(self, instance, validated_data):
+        # Update fields if present in validated_data or keep existing
+        instance.name = validated_data.get('name', instance.name) 
+        instance.currency = validated_data.get('currency', instance.currency)
+        instance.asset_class = validated_data.get('asset_class', instance.asset_class)
+        instance.venue = validated_data.get('venue', instance.venue)
+        instance.save()
+        return instance
+
