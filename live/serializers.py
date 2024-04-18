@@ -93,8 +93,9 @@ class LiveSessionSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         logger.info(f"Updating for LiveSession instance with ID: {instance.id}")
         try:
+            parameters = validated_data.pop('parameters', {}) # can only update the parameters
             # Proceed with the default update process
-            instance = super().update(instance, validated_data)
+            instance = super().update(instance, parameters)
             logger.info(f"Successfully updated LiveSession instance with ID: {instance.id}")
             return instance
         except Exception as e:
