@@ -1,13 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import (BacktestViewSet, StaticStatsViewSet, TimeseriesStatsViewSet, TradeViewSet, SignalViewSet)
-
+from .views import BacktestViewSet
+                
 router = DefaultRouter()
 router.register(r'backtest', BacktestViewSet)
-router.register(r'static_stats', StaticStatsViewSet)
-router.register(r'timeseries_stats', TimeseriesStatsViewSet)
-router.register(r'trades', TradeViewSet)
-router.register(r'signals', SignalViewSet)
+
 
 urlpatterns = [
     path('', include(router.urls)),

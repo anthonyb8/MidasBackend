@@ -83,20 +83,5 @@ class BacktestViewSet(viewsets.ModelViewSet):
             logger.error(f"Failed to delete a Backtest instance: {e}")
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
-class StaticStatsViewSet(viewsets.ModelViewSet):
-    queryset = StaticStats.objects.all()
-    serializer_class = StaticStatsSerializer
-
-class TimeseriesStatsViewSet(viewsets.ModelViewSet):
-    queryset = TimeseriesStats.objects.all()
-    serializer_class = TimeseriesStatsSerializer
-
-class TradeViewSet(viewsets.ModelViewSet):
-    queryset = Trade.objects.all()
-    serializer_class = TradeSerializer
-
-class SignalViewSet(viewsets.ModelViewSet):
-    queryset = Signal.objects.all()
-    serializer_class = SignalSerializer
 
 
