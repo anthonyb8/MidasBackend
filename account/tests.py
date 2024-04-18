@@ -1,58 +1,66 @@
-from rest_framework.test import APIClient
-from django.test import TestCase
 from rest_framework import status
+from rest_framework.test import APIClient, APITestCase
 
-USER = {
-        'username': 'username',
-        'email': 'email@example.com',
-        'password': 'password'
-        }
-
-class UserRegistrationTests(TestCase):
-
+class Base(APITestCase):
     def setUp(self):
+        # Set up the client
         self.client = APIClient()
 
-    def test_user_registration(self):
-        data = {
-            'username': 'username',
-            'email': 'email@example.com',
-            'password': 'password'
-        }
-        response = self.client.post('/account/register/', data, format='json')
+        self.user_data = {
+                            'username': 'username',
+                            'email': 'email@example.com',
+                            'password': 'password'
+                        }
+        # url
+        self.url = "/api/"
 
+class UserRegistrationTests(Base):
+    def setUp(self):
+        super().setUp()
+
+    def test_user_registration(self):
+        url = f"{self.url}register/"
+        
+        # test
+        response = self.client.post(url, self.user_data, format='json')
+
+        # validate
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('token', response.data)
 
-class  UserLoginTests(TestCase):
+class  UserLoginTests(Base):
     def setUp(self) -> None:
-        self.client = APIClient()
+        super().setUp()
+
+        # Register user 
+        url = f"{self.url}register/"
+        response = self.client.post(url, self.user_data, format='json')
+
+        # URL
+        self.url = f"{self.url}login/"
     
-    def test_user_login(self):
-        response = self.client.post('/api/account/register/', USER, format='json')
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {response.data["token"]}')
+    def test_user_login_exists(self):
+        # test
+        response = self.client.post(self.url, self.user_data, format='json')
 
-    def test_user_login(self):
-        # You might need to create a user first if it's not already created
-        data = {'username': 'anthony', 'password': 'testing123'}
-        response = self.client.post('/api/account/login/', data, format='json')
-        self.assertEqual(response.status_code, 200)  # Assuming 200 is the status for successful login
-        self.assertIn('token', response.data)  # Check if token is in response
+        # validate
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('token', response.data)
 
-class  UserLoginTests(TestCase):
-    def setUp(self) -> None:
-        self.client = APIClient()
-    
-    def test_user_logout(self):
-        # First login or create a user and login to obtain a token
-        self.test_user_login()  # Or however you obtain a token
 
-        # Assuming the token is stored in self.token after login
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
-        response = self.client.post('https://midasbackend-157a5aab9f51.herokuapp.com/account/logout/', format='json')
-        self.assertEqual(response.status_code, 204)  # Assuming 204 is the status for successful logout
-        # Clear the credentials after logout
-        self.client.credentials()
+    def test_user_login_not_exists(self):
+        not_user = {
+            'username': 'username2',
+            'email': 'email@example.com',
+            'password': 'password'
+        }
+        # test
+        response = self.client.post(self.url, not_user, format='json')
+        
+        # validate
+        self.assertEqual(response.status_code, 401) 
+        self.assertIn(response.data['error'], 'Invalid Credentials') 
+
 
 
 
