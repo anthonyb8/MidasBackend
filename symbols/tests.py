@@ -472,18 +472,18 @@ class EquityViewSetTest(Base):
         data = {'company_name': "UpdatedGoogle", 'venue': self.venue.value, 'currency': self.currency.value,'industry': self.industry.value,
                 'market_cap': 2000000,'shares_outstanding': 9000000,"symbol":self.symbol.id}
         response = self.client.post(self.url, data)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, 405)
 
     def test_update_equity_not_allowed(self):
         data = {'company_name': "UpdatedGoogle", 'venue': self.venue.value, 'currency': self.currency.value,'industry': self.industry.value,
                 'market_cap': 2000000,'shares_outstanding': 9000000,"symbol":self.symbol.id}
         url = f"{self.url}/"
         response = self.client.put(self.url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, 405)
 
     def test_delete_equity_not_allowed(self):
         response = self.client.delete(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, 405)
 
 class FutureViewSetTest(Base):
     def setUp(self):
@@ -510,17 +510,17 @@ class FutureViewSetTest(Base):
     def test_create_future_not_allowed(self):
         data = {'product_code': "tt"}
         response = self.client.post(self.url, data)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, 405)
 
     def test_update_future_not_allowed(self):
         data = {'product_code': "tt"}
         url = f"{self.url}/"
         response = self.client.put(self.url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, 405)
 
     def test_delete_future_not_allowed(self):
         response = self.client.delete(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, 405)
 
 class IndexViewSetTest(Base):
     def setUp(self):
@@ -546,14 +546,14 @@ class IndexViewSetTest(Base):
     def test_create_index_not_allowed(self):
         data = {'product_code': "tt"}
         response = self.client.post(self.url, data)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, 405)
 
     def test_update_index_not_allowed(self):
         data = {'product_code': "tt"}
         url = f"{self.url}/"
         response = self.client.put(self.url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, 405)
 
     def test_delete_index_not_allowed(self):
         response = self.client.delete(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, 405)

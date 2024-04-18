@@ -1,7 +1,7 @@
 import logging
 from rest_framework import viewsets, status
 from rest_framework.exceptions import APIException
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, MethodNotAllowed
 from .models import Symbol, Equity, Cryptocurrency, Option, Future, Index, AssetClass, Currency, SecurityType, Industry, ContractUnits, Venue
 from .serializers import ( AssetClassSerializer, CurrencySerializer, SecurityTypeSerializer, VenueSerializer, IndustrySerializer, ContractUnitsSerializer, 
                           SymbolSerializer, EquitySerializer, FutureSerializer, OptionSerializer, IndexSerializer, CryptocurrencySerializer)
@@ -54,15 +54,15 @@ class EquityViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         logger.info("Attempt to directly create a Equity via API.")
-        raise PermissionDenied(detail="Direct creation of Equity is not allowed.")
+        raise MethodNotAllowed(method="POST",detail="Direct creation of Equity is not allowed.")
     
     def update(self, request, *args, **kwargs):
         logger.info("Attempt to directly update a Equity via API.")
-        raise PermissionDenied(detail="Direct updating of Equity is not allowed.")
+        raise MethodNotAllowed(method="PUT", detail="Direct updating of Equity is not allowed.")
     
     def destroy(self, request, *args, **kwargs):
         logger.info("Attempt to directly delete Equity via API.")
-        raise PermissionDenied(detail="Direct deleting of Equity is not allowed.")
+        raise MethodNotAllowed(method="DELETE", detail="Direct deleting of Equity is not allowed.")
     
 class FutureViewSet(viewsets.ModelViewSet):
     queryset = Future.objects.all()
@@ -70,15 +70,15 @@ class FutureViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         logger.warn("Attempt to directly create a Future via API.")
-        raise PermissionDenied(detail="Direct creation of Future is not allowed.")
+        raise MethodNotAllowed(method="POST", detail="Direct creation of Future is not allowed.")
     
     def update(self, request, *args, **kwargs):
         logger.warn("Attempt to directly update a Future via API.")
-        raise PermissionDenied(detail="Direct updating of Future is not allowed.")
+        raise MethodNotAllowed(method="PUT", detail="Direct updating of Future is not allowed.")
     
     def destroy(self, request, *args, **kwargs):
         logger.warn("Attempt to directly delete Future via API.")
-        raise PermissionDenied(detail="Direct deleting of Future is not allowed.")
+        raise MethodNotAllowed(method="DELETE", detail="Direct deleting of Future is not allowed.")
 
 class CryptocurrencyViewSet(viewsets.ModelViewSet):
     queryset = Cryptocurrency.objects.all()
@@ -86,15 +86,15 @@ class CryptocurrencyViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         logger.warn("Attempt to directly create a Cryptocurrency via API.")
-        raise PermissionDenied(detail="Direct creation of Cryptocurrency is not allowed.")
+        raise MethodNotAllowed(method="POST", detail="Direct creation of Cryptocurrency is not allowed.")
     
     def update(self, request, *args, **kwargs):
         logger.warn("Attempt to directly update a Cryptocurrency via API.")
-        raise PermissionDenied(detail="Direct updating of Cryptocurrency is not allowed.")
+        raise MethodNotAllowed(method="PUT", detail="Direct updating of Cryptocurrency is not allowed.")
     
     def destroy(self, request, *args, **kwargs):
         logger.warn("Attempt to directly delete Cryptocurrency via API.")
-        raise PermissionDenied(detail="Direct deleting of Cryptocurrency is not allowed.")
+        raise MethodNotAllowed(method="DELETE", detail="Direct deleting of Cryptocurrency is not allowed.")
 
 class OptionViewSet(viewsets.ModelViewSet):
     queryset = Option.objects.all()
@@ -102,15 +102,15 @@ class OptionViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         logger.warn("Attempt to directly create a Option via API.")
-        raise PermissionDenied(detail="Direct creation of Option is not allowed.")
+        raise MethodNotAllowed(method="POST", detail="Direct creation of Option is not allowed.")
     
     def update(self, request, *args, **kwargs):
         logger.warn("Attempt to directly update a Option via API.")
-        raise PermissionDenied(detail="Direct updating of Option is not allowed.")
+        raise MethodNotAllowed(method="PUT", detail="Direct updating of Option is not allowed.")
     
     def destroy(self, request, *args, **kwargs):
         logger.warn("Attempt to directly delete Option via API.")
-        raise PermissionDenied(detail="Direct deleting of Option is not allowed.")
+        raise MethodNotAllowed(method="DELETE", detail="Direct deleting of Option is not allowed.")
 
 class IndexViewSet(viewsets.ModelViewSet):
     queryset = Index.objects.all()
@@ -118,13 +118,13 @@ class IndexViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         logger.warn("Attempt to directly create a Index via API.")
-        raise PermissionDenied(detail="Direct creation of Index is not allowed.")
+        raise MethodNotAllowed(method="POST", detail="Direct creation of Index is not allowed.")
     
     def update(self, request, *args, **kwargs):
         logger.warn("Attempt to directly update a Index via API.")
-        raise PermissionDenied(detail="Direct updating of Index is not allowed.")
+        raise MethodNotAllowed(method="PUT", detail="Direct updating of Index is not allowed.")
     
     def destroy(self, request, *args, **kwargs):
         logger.warn("Attempt to directly delete Index via API.")
-        raise PermissionDenied(detail="Direct deleting of Index is not allowed.")
+        raise MethodNotAllowed(method="DELETE", detail="Direct deleting of Index is not allowed.")
 

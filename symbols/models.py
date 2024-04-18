@@ -58,7 +58,7 @@ class Equity(models.Model):
     venue = models.ForeignKey(Venue, on_delete=models.SET_NULL, null=True, blank=True)
     currency = models.ForeignKey(Currency, on_delete=models.SET_NULL, null=True, blank=True)
     industry = models.ForeignKey(Industry, on_delete=models.SET_NULL, null=True, blank=True)
-    market_cap = models.IntegerField(null=True, blank=True)
+    market_cap = models.FloatField(null=True, blank=True)
     shares_outstanding = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
