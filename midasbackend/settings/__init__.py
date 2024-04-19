@@ -2,7 +2,10 @@
 from decouple import config
 from .base import *
 
-if config('DJANGO_ENV') == 'production':
+ENV = config('DJANGO_ENV')
+
+
+if ENV == 'production':
     from .production import *
 else:
     from .development import *
