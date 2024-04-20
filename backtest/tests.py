@@ -34,7 +34,7 @@ class Backtest(Base):
         self.security_type = SecurityType.objects.create(value="STOCK")
         self.symbol = Symbol.objects.create(ticker=self.ticker, security_type=self.security_type)
         self.bar_data = BarData.objects.create(symbol=self.symbol,
-                                                    timestamp="2024-01-10",
+                                                    timestamp=1707307740000000000,
                                                     open=100.99999,
                                                     high=100.99999,
                                                     low=100.99999,

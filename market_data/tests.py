@@ -29,7 +29,7 @@ class BarDataViewSetTest(Base):
         self.security_type = SecurityType.objects.create(value="STOCK")
         self.symbol = Symbol.objects.create(ticker=self.ticker, security_type=self.security_type)
         self.bar_data = BarData.objects.create(symbol=self.symbol,
-                                                    timestamp="2024-01-10",
+                                                    timestamp=1707307740000000000,
                                                     open=100.99999,
                                                     high=100.99999,
                                                     low=100.99999,
@@ -52,7 +52,7 @@ class BarDataViewSetTest(Base):
         ticker="MSFT"
         symbol = Symbol.objects.create(ticker=ticker, security_type=self.security_type)
         bar_data = BarData.objects.create(symbol=symbol,
-                                                    timestamp="2024-01-10",
+                                                    timestamp=1707307740000000000,
                                                     open=100.99999,
                                                     high=100.99999,
                                                     low=100.99999,
@@ -72,14 +72,14 @@ class BarDataViewSetTest(Base):
 
     def test_get_bar_data_by_ticker_and_date_range(self):
         bar_data = BarData.objects.create(symbol=self.symbol,
-                                                    timestamp="2024-01-11",
+                                                    timestamp=1707307750000000000,
                                                     open=100.99999,
                                                     high=100.99999,
                                                     low=100.99999,
                                                     close=100.99999,
                                                     volume=100.99999,
                                                     )
-        url = f"{self.url}?tickers=AAPL&start_date=2024-01-09&end_date=2024-01-12"
+        url = f"{self.url}?tickers=AAPL&start_date=1707307740000000000&end_date=1707307760000000000"
 
         # test
         response=self.client.get(url)
@@ -94,7 +94,7 @@ class BarDataViewSetTest(Base):
 
         data= {
             "symbol":ticker,    
-            "timestamp":"2024-01-10",
+            "timestamp":1707307740000000000,
             "open":100.9999,
             "high":100.9999,
             "low":100.9999,
@@ -117,7 +117,7 @@ class BarDataViewSetTest(Base):
 
         data= [{
             "symbol":ticker,    
-            "timestamp":"2024-01-10",
+            "timestamp":1707307750000000000,
             "open":100.9999,
             "high":100.9999,
             "low":100.9999,
@@ -126,7 +126,7 @@ class BarDataViewSetTest(Base):
 
         },{
             "symbol":ticker,    
-            "timestamp":"2024-01-11",
+            "timestamp":1707307760000000000,
             "open":99.9999,
             "high":100.9999,
             "low":100.9999,
@@ -148,7 +148,7 @@ class BarDataViewSetTest(Base):
     def test_bulk_create_with_overlap(self):
         data= [{
             "symbol":self.ticker,    
-            "timestamp":"2024-01-10",
+            "timestamp":1707307740000000000,
             "open":99.9999,
             "high":99.9999,
             "low":99.9999,
@@ -157,7 +157,7 @@ class BarDataViewSetTest(Base):
 
         },{
             "symbol":self.ticker,    
-            "timestamp":"2024-01-11",
+            "timestamp":1707307750000000000,
             "open":99.9999,
             "high":100.9999,
             "low":100.9999,
@@ -180,7 +180,7 @@ class BarDataViewSetTest(Base):
 
         data= {
             "symbol":self.ticker,    
-            "timestamp":"2024-01-10",
+            "timestamp":1707307740000000000,
             "open":100.9999,
             "high":100.9999,
             "low":100.9999,
