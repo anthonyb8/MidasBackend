@@ -44,7 +44,7 @@ class SymbolSerializer(serializers.ModelSerializer):
     symbol_data = serializers.DictField(required=False, write_only=True) 
     class Meta:
         model = Symbol
-        fields = ['ticker', 'security_type', 'symbol_data']
+        fields = ['id', 'ticker', 'security_type', 'symbol_data']
 
     def create(self, validated_data):
         symbol_data = validated_data.pop('symbol_data', None)
