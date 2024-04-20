@@ -9,10 +9,10 @@ class Backtest(models.Model):
     tickers = models.JSONField(default=list)
     benchmark = models.JSONField(default=list)
     data_type = models.CharField(max_length=10)
-    train_start = models.CharField(max_length=25, null=True, blank=True)
-    train_end = models.CharField(max_length=25, null=True, blank=True)
-    test_start = models.CharField(max_length=25, null=True, blank=True)
-    test_end =  models.CharField(max_length=25, null=True, blank=True)
+    train_start = models.BigIntegerField(null=True, blank=True)
+    train_end = models.BigIntegerField(null=True, blank=True)
+    test_start = models.BigIntegerField(null=True, blank=True) 
+    test_end = models.BigIntegerField(null=True, blank=True)
     capital = models.FloatField(null=True, blank=True)
     strategy_allocation = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -21,7 +21,7 @@ class Trade(models.Model):
     backtest = models.ForeignKey(Backtest, related_name='trades', on_delete=models.CASCADE)
     trade_id = models.CharField(max_length=100)  
     leg_id = models.CharField(max_length=100)    
-    timestamp = models.DateTimeField()
+    timestamp = models.BigIntegerField()
     ticker = models.CharField(max_length=50)     
     quantity = models.DecimalField(max_digits=10, decimal_places=4)
     price = models.DecimalField(max_digits=10, decimal_places=4)
@@ -31,7 +31,7 @@ class Trade(models.Model):
 
 class Signal(models.Model):
     backtest = models.ForeignKey(Backtest, related_name='signals', on_delete=models.CASCADE)
-    timestamp = models.DateTimeField()
+    timestamp = models.BigIntegerField()
 
 class TradeInstruction(models.Model):
     signal = models.ForeignKey(Signal, related_name='trade_instructions', on_delete=models.CASCADE)
@@ -68,7 +68,7 @@ class StaticStats(models.Model):
 
 class TimeseriesStats(models.Model):
     backtest = models.ForeignKey(Backtest, related_name='timeseries_stats', on_delete=models.CASCADE)
-    timestamp = models.DateTimeField()
+    timestamp = models.BigIntegerField()
     equity_value = models.DecimalField(max_digits=15, decimal_places=2, default=0.0)
     period_return = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
     cumulative_return = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)

@@ -228,7 +228,7 @@ class QuoteDataViewSetTest(Base):
         self.security_type = SecurityType.objects.create(value="STOCK")
         self.symbol = Symbol.objects.create(ticker=self.ticker, security_type=self.security_type)
         self.quote_data = QuoteData.objects.create(symbol=self.symbol,
-                                                    timestamp="2024-01-10",
+                                                    timestamp=1704862800,
                                                     ask=90.999,
                                                     ask_size=9849.999,
                                                     bid=89.99,
@@ -250,7 +250,7 @@ class QuoteDataViewSetTest(Base):
         ticker="MSFT"
         symbol = Symbol.objects.create(ticker=ticker, security_type=self.security_type)
         quote_data = QuoteData.objects.create(symbol=symbol,
-                                                    timestamp="2024-01-10",
+                                                    timestamp=1704862800,
                                                     ask=90.999,
                                                     ask_size=9849.999,
                                                     bid=89.99,
@@ -269,13 +269,13 @@ class QuoteDataViewSetTest(Base):
 
     def test_get_quote_data_by_ticker_and_date_range(self):
         quote_data = QuoteData.objects.create(symbol=self.symbol,
-                                                    timestamp="2024-01-11",
+                                                    timestamp=1704862900,
                                                     ask=90.999,
                                                     ask_size=9849.999,
                                                     bid=89.99,
                                                     bid_size=9990.8778
                                                     )
-        url = f"{self.url}?tickers=AAPL&start_date=2024-01-09&end_date=2024-01-12"
+        url = f"{self.url}?tickers=AAPL&start_date=1704862800&end_date=1704863000"
 
         # test
         response=self.client.get(url)
@@ -290,7 +290,7 @@ class QuoteDataViewSetTest(Base):
 
         data= {
             "symbol":ticker,    
-            "timestamp":"2024-01-10",
+            "timestamp":1704862800,
             "ask":90.999,
             "ask_size":9849.999,
             "bid":89.99,
@@ -311,7 +311,7 @@ class QuoteDataViewSetTest(Base):
 
         data= [{
             "symbol":ticker,    
-            "timestamp":"2024-01-10",
+            "timestamp":1704862800,
             "ask":90.999,
             "ask_size":9849.999,
             "bid":89.99,
@@ -319,7 +319,7 @@ class QuoteDataViewSetTest(Base):
 
         },{
             "symbol":ticker,    
-            "timestamp":"2024-01-11",
+            "timestamp":1704862900,
             "ask":90.999,
             "ask_size":9849.999,
             "bid":89.99,
@@ -340,7 +340,7 @@ class QuoteDataViewSetTest(Base):
     def test_bulk_create_with_overlap(self):
         data= [{
             "symbol":self.ticker,    
-            "timestamp":"2024-01-10",
+            "timestamp":1704862800,
             "ask":111.999,
             "ask_size":111.999,
             "bid":111.99,
@@ -348,7 +348,7 @@ class QuoteDataViewSetTest(Base):
 
         },{
             "symbol":self.ticker,    
-            "timestamp":"2024-01-11",
+            "timestamp":1704862900,
             "ask":90.999,
             "ask_size":9849.999,
             "bid":89.99,
@@ -369,7 +369,7 @@ class QuoteDataViewSetTest(Base):
     def test_update_quote_data(self):
         data= {
             "symbol":self.ticker,    
-            "timestamp":"2024-01-10",
+            "timestamp":1704862800,
             "ask":111.999,
             "ask_size":111.999,
             "bid":1234.99,

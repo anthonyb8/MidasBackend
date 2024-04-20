@@ -7,17 +7,17 @@ class LiveSession(models.Model):
     tickers = models.JSONField(default=list)
     benchmark = models.JSONField(default=list)
     data_type = models.CharField(max_length=10)
-    train_start = models.CharField(max_length=25, null=True, blank=True)
-    train_end = models.CharField(max_length=25, null=True, blank=True)
-    test_start = models.CharField(max_length=25, null=True, blank=True)
-    test_end =  models.CharField(max_length=25, null=True, blank=True)
+    train_start = models.BigIntegerField(null=True, blank=True)
+    train_end = models.BigIntegerField(null=True, blank=True)
+    test_start = models.BigIntegerField(null=True, blank=True) 
+    test_end = models.BigIntegerField(null=True, blank=True)
     capital = models.FloatField(null=True, blank=True)
     strategy_allocation = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
 class Signal(models.Model):
     live_session = models.ForeignKey(LiveSession, related_name='signals', on_delete=models.CASCADE)
-    timestamp = models.DateTimeField()
+    timestamp = models.BigIntegerField()
 
 class TradeInstruction(models.Model):
     signal = models.ForeignKey(Signal, related_name='trade_instructions', on_delete=models.CASCADE)
@@ -29,7 +29,7 @@ class TradeInstruction(models.Model):
 
 class Trade(models.Model):
     live_session = models.ForeignKey(LiveSession, related_name='trades', on_delete=models.CASCADE)   
-    timestamp = models.CharField(max_length=50) 
+    timestamp = models.BigIntegerField()
     ticker = models.CharField(max_length=50)     
     quantity = models.DecimalField(max_digits=10, decimal_places=4)
     price = models.DecimalField(max_digits=10, decimal_places=4)
@@ -41,7 +41,7 @@ class AccountSummary(models.Model):
     currency = models.CharField(max_length=4)  # 'USD'
 
     # Starting Snapshot
-    start_timestamp = models.DateTimeField()
+    start_timestamp = models.BigIntegerField()
     start_BuyingPower = models.DecimalField(max_digits=15, decimal_places=4)
     start_ExcessLiquidity = models.DecimalField(max_digits=15, decimal_places=4) 
     start_FullAvailableFunds = models.DecimalField(max_digits=15, decimal_places=4)
@@ -53,7 +53,7 @@ class AccountSummary(models.Model):
     start_UnrealizedPnL = models.DecimalField(max_digits=15, decimal_places=4) 
     
     # Ending Snapshot
-    end_timestamp = models.DateTimeField()
+    end_timestamp = models.BigIntegerField()
     end_BuyingPower = models.DecimalField(max_digits=15, decimal_places=4)
     end_ExcessLiquidity = models.DecimalField(max_digits=15, decimal_places=4) 
     end_FullAvailableFunds = models.DecimalField(max_digits=15, decimal_places=4)

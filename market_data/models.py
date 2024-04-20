@@ -23,7 +23,7 @@ class BarData(models.Model):
 
 class QuoteData(models.Model):
     symbol = models.ForeignKey(Symbol, on_delete=models.CASCADE, related_name='quotedata')
-    timestamp = models.DateTimeField(db_index=True)
+    timestamp = models.BigIntegerField(db_index=True)
     ask = models.DecimalField(max_digits=10, decimal_places=4)
     ask_size = models.DecimalField(max_digits=10, decimal_places=4)
     bid = models.DecimalField(max_digits=10, decimal_places=4)

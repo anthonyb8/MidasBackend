@@ -45,30 +45,30 @@ class LiveSessionTests(Base):
                                     "strategy_name": "cointegrationzscore", 
                                     "capital": 100000, 
                                     "data_type": "BAR", 
-                                    "train_start": "2020-05-18", 
-                                    "train_end": "2024-01-01", 
-                                    "test_start": "2024-01-02", 
-                                    "test_end": "2024-01-19", 
+                                    "train_start": 1704862800, 
+                                    "train_end": 1704893000, 
+                                    "test_start": 1704903000, 
+                                    "test_end": 1705903000, 
                                     "tickers": ["HE", "ZC"], 
                                     "benchmark": ["^GSPC"]
                                 }, 
                                 "signals": [
                                     {
-                                        "timestamp": "2024-04-11T15:41:00+00:00", 
+                                        "timestamp": 1704903000, 
                                         "trade_instructions": [
                                             {"ticker": "HE", "order_type": "MKT", "action": "SHORT", "trade_id": 1, "leg_id": 1, "weight": "-0.8689"}, 
                                             {"ticker": "ZC", "order_type": "MKT", "action": "LONG", "trade_id": 1, "leg_id": 2, "weight": "0.1311"}
                                         ]
                                     }, 
                                     {
-                                        "timestamp": "2024-04-11T15:41:05+00:00", 
+                                        "timestamp": 1704904000, 
                                         "trade_instructions": [
                                             {"ticker": "HE", "order_type": "MKT", "action": "SHORT", "trade_id": 1, "leg_id": 1, "weight": "-0.8689"}, 
                                             {"ticker": "ZC", "order_type": "MKT", "action": "LONG", "trade_id": 1, "leg_id": 2, "weight": "0.1311"}
                                         ]
                                     }, 
                                     {
-                                        "timestamp": "2024-04-11T15:41:10+00:00", 
+                                        "timestamp": 1704905000, 
                                         "trade_instructions": [
                                             {"ticker": "HE", "order_type": "MKT", "action": "SHORT", "trade_id": 1, "leg_id": 1, "weight": "-0.8689"}, 
                                             {"ticker": "ZC", "order_type": "MKT", "action": "LONG", "trade_id": 1, "leg_id": 2, "weight": "0.1311"}
@@ -76,8 +76,8 @@ class LiveSessionTests(Base):
                                     }
                                 ], 
                                 "trades": [
-                                    {"timestamp": "2024-04-11T15:41:00+00:00", "ticker": "HE", "quantity": "1", "cumQty": "1", "price": "91.45", "AvPrice": "91.45", "action": "SELL", "cost": "0", "currency": "USD", "fees": "2.97"}, 
-                                    {"timestamp": "2024-04-11T15:41:00+00:00", "ticker": "ZC", "quantity": "1", "cumQty": "1", "price": "446.25", "AvPrice": "446.25", "action": "BUY", "cost": "0", "currency": "USD", "fees": "2.97"}
+                                    {"timestamp": 1704903000, "ticker": "HE", "quantity": "1", "cumQty": "1", "price": "91.45", "AvPrice": "91.45", "action": "SELL", "cost": "0", "currency": "USD", "fees": "2.97"}, 
+                                    {"timestamp": 1704904000, "ticker": "ZC", "quantity": "1", "cumQty": "1", "price": "446.25", "AvPrice": "446.25", "action": "BUY", "cost": "0", "currency": "USD", "fees": "2.97"}
                                 ], 
                                 "account_data": [{
                                     "start_BuyingPower": "2557567.234", 
@@ -90,7 +90,7 @@ class LiveSessionTests(Base):
                                     "start_NetLiquidation": "767552.392", 
                                     "start_TotalCashBalance": "-11292.332", 
                                     "start_UnrealizedPnL": "0", 
-                                    "start_timestamp": "2024-04-11T11:40:09.861731", 
+                                    "start_timestamp": 1704903000, 
                                     "end_BuyingPower": "2535588.9282", 
                                     "end_ExcessLiquidity": "762034.2928", 
                                     "end_FullAvailableFunds": "760676.292", 
@@ -100,7 +100,7 @@ class LiveSessionTests(Base):
                                     "end_NetLiquidation": "767751.998", 
                                     "end_TotalCashBalance": "766935.99", 
                                     "end_UnrealizedPnL": "-28.99", 
-                                    "end_timestamp": "2024-04-11T11:42:17.046984"
+                                    "end_timestamp": 1704904000
                                 }]
                             }
         
@@ -159,10 +159,10 @@ class LiveSessionTests(Base):
                                 "strategy_name": "cnothing", 
                                 "capital": 100000, 
                                 "data_type": "BAR", 
-                                "train_start": "2018-05-18", 
-                                "train_end": "2023-01-19", 
-                                "test_start": "2023-01-19", 
-                                "test_end": "2024-01-19", 
+                                "train_start": 1704862800, 
+                                "train_end": 1704893000, 
+                                "test_start": 1704903000, 
+                                "test_end": 1705903000, 
                                 "tickers": [self.ticker], 
                                 "benchmark": ["XXXt"]
                             }

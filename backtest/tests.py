@@ -46,10 +46,10 @@ class Backtest(Base):
                                 "strategy_name": "cointegrationzscore", 
                                 "capital": 100000, 
                                 "data_type": "BAR", 
-                                "train_start": "2018-05-18", 
-                                "train_end": "2023-01-19", 
-                                "test_start": "2023-01-19", 
-                                "test_end": "2024-01-19", 
+                                "train_start": 1704862800, 
+                                "train_end": 1704893000, 
+                                "test_start": 1704903000, 
+                                "test_end": 1705903000, 
                                 "tickers": [self.ticker], 
                                 "benchmark": ["^GSPC"]
                             },
@@ -91,7 +91,7 @@ class Backtest(Base):
                             }],
                             "timeseries_stats": [
                                 {
-                                    "timestamp": "2023-12-09T12:00:00Z",
+                                    "timestamp": 1704903000,
                                     "equity_value": 10000.0,
                                     "percent_drawdown": 9.9, 
                                     "cumulative_return": -0.09, 
@@ -100,7 +100,7 @@ class Backtest(Base):
                                     "daily_benchmark_return": "0.00499"
                                 },
                                 {
-                                    "timestamp": "2023-12-10T12:00:00Z",
+                                    "timestamp": 1704904000,
                                     "equity_value": 10000.0,
                                     "percent_drawdown": 9.9, 
                                     "cumulative_return": -0.09, 
@@ -112,7 +112,7 @@ class Backtest(Base):
                             "trades": [{
                                 "trade_id": 1, 
                                 "leg_id": 1, 
-                                "timestamp": "2023-01-03T00:00:00+0000", 
+                                "timestamp": 1704903000, 
                                 "ticker": "AAPL", 
                                 "quantity": 4, 
                                 "price": 130.74, 
@@ -121,7 +121,7 @@ class Backtest(Base):
                                 "fees": 0.0
                             }],
                             "signals": [{
-                                "timestamp": "2023-01-03T00:00:00+0000", 
+                                "timestamp": 1704903000, 
                                 "trade_instructions": [{
                                     "ticker": "AAPL", 
                                     "action": "BUY", 
@@ -196,10 +196,10 @@ class Backtest(Base):
                                 "strategy_name": "cnothing", 
                                 "capital": 100000, 
                                 "data_type": "BAR", 
-                                "train_start": "2018-05-18", 
-                                "train_end": "2023-01-19", 
-                                "test_start": "2023-01-19", 
-                                "test_end": "2024-01-19", 
+                                "train_start": 1704862800, 
+                                "train_end": 1704893000, 
+                                "test_start": 1704903000, 
+                                "test_end": 1705903000, 
                                 "tickers": [self.ticker], 
                                 "benchmark": ["XXXt"]
                             }
