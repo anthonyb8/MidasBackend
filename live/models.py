@@ -41,7 +41,7 @@ class AccountSummary(models.Model):
     currency = models.CharField(max_length=4)  # 'USD'
 
     # Starting Snapshot
-    start_timestamp = models.BigIntegerField()
+    start_timestamp = models.BigIntegerField(null=True, blank=True)
     start_BuyingPower = models.DecimalField(max_digits=15, decimal_places=4)
     start_ExcessLiquidity = models.DecimalField(max_digits=15, decimal_places=4) 
     start_FullAvailableFunds = models.DecimalField(max_digits=15, decimal_places=4)
@@ -53,7 +53,7 @@ class AccountSummary(models.Model):
     start_UnrealizedPnL = models.DecimalField(max_digits=15, decimal_places=4) 
     
     # Ending Snapshot
-    end_timestamp = models.BigIntegerField()
+    end_timestamp = models.BigIntegerField(null=True, blank=True)
     end_BuyingPower = models.DecimalField(max_digits=15, decimal_places=4)
     end_ExcessLiquidity = models.DecimalField(max_digits=15, decimal_places=4) 
     end_FullAvailableFunds = models.DecimalField(max_digits=15, decimal_places=4)
