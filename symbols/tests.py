@@ -218,7 +218,7 @@ class SymbolTestWithEquity(Base):
         super().setUp()
         
         # Set up required objects
-        self.security_type = SecurityType.objects.create(value="STOCK")
+        self.security_type = SecurityType.objects.create(value="STK")
         self.venue = Venue.objects.create(value="NASDAQ")
         self.industry = Industry.objects.create(value="Technology")
         self.currency = Currency.objects.create(value="USD")
@@ -295,7 +295,7 @@ class SymbolTestWithFuture(Base):
         super().setUp()
         
         # Set up required objects
-        self.security_type = SecurityType.objects.create(value="FUTURE")
+        self.security_type = SecurityType.objects.create(value="FUT")
         self.venue = Venue.objects.create(value="CME")
         self.industry = Industry.objects.create(value="AGRICULTURE")
         self.currency = Currency.objects.create(value="USD")
@@ -379,7 +379,7 @@ class SymbolTestWithIndex(Base):
         super().setUp()
         
         # Set up required objects
-        self.security_type = SecurityType.objects.create(value="INDEX")
+        self.security_type = SecurityType.objects.create(value="IND")
         self.venue = Venue.objects.create(value="NASDAQ")
         self.currency = Currency.objects.create(value="USD")
         self.asset_class = AssetClass.objects.create(value="EQUITY")

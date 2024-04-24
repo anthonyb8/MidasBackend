@@ -50,7 +50,7 @@ class SymbolSerializer(serializers.ModelSerializer):
         symbol_data = validated_data.pop('symbol_data', None)
         with transaction.atomic():
             symbol = Symbol.objects.create(**validated_data)
-            if symbol.security_type.value == "STOCK":
+            if symbol.security_type.value == "STK":
                 if symbol_data:
                     symbol_data['symbol'] = symbol.pk  # Pass symbol instance to equity_data
                     equity_serializer = EquitySerializer(data=symbol_data)
@@ -58,7 +58,7 @@ class SymbolSerializer(serializers.ModelSerializer):
                         equity_serializer.save()
                     else:
                         raise serializers.ValidationError(equity_serializer.errors)
-            elif symbol.security_type.value == "FUTURE":
+            elif symbol.security_type.value == "FUT":
                 if symbol_data:
                     symbol_data['symbol'] = symbol.pk  # Pass symbol instance to equity_data
                     future_serializer = FutureSerializer(data=symbol_data)
@@ -66,7 +66,7 @@ class SymbolSerializer(serializers.ModelSerializer):
                         future_serializer.save()
                     else:
                         raise serializers.ValidationError(future_serializer.errors)
-            elif symbol.security_type.value == "OPTION":
+            elif symbol.security_type.value == "OPT":
                 if symbol_data:
                     symbol_data['symbol'] = symbol.pk  # Pass symbol instance to equity_data
                     option_serializer = OptionSerializer(data=symbol_data)
@@ -74,7 +74,7 @@ class SymbolSerializer(serializers.ModelSerializer):
                         option_serializer.save()
                     else:
                         raise serializers.ValidationError(option_serializer.errors)
-            elif symbol.security_type.value == "CRYPTOCURRENCY":
+            elif symbol.security_type.value == "CRYPTO":
                 if symbol_data:
                     symbol_data['symbol'] = symbol.pk  # Pass symbol instance to equity_data
                     cryptocurrency_serializer = CryptocurrencySerializer(data=symbol_data)
@@ -82,7 +82,7 @@ class SymbolSerializer(serializers.ModelSerializer):
                         cryptocurrency_serializer.save()
                     else:
                         raise serializers.ValidationError(cryptocurrency_serializer.errors)
-            elif symbol.security_type.value == "INDEX":
+            elif symbol.security_type.value == "IND":
                 if symbol_data:
                     symbol_data['symbol'] = symbol.pk  # Pass symbol instance to equity_data
                     index_serializer = IndexSerializer(data=symbol_data)
@@ -103,7 +103,7 @@ class SymbolSerializer(serializers.ModelSerializer):
             instance.security_type = validated_data.get('security_type', instance.security_type)
             instance.save()
 
-            if instance.security_type.value == "STOCK":
+            if instance.security_type.value == "STK":
                 # Delegate update or creation of related equity
                 if symbol_data:
                     equity = getattr(instance, 'equity', None)
@@ -119,7 +119,7 @@ class SymbolSerializer(serializers.ModelSerializer):
                         equity_serializer.save()
                     else:
                         raise serializers.ValidationError(equity_serializer.errors)
-            elif instance.security_type.value == "FUTURE":
+            elif instance.security_type.value == "FUT":
                 # Delegate update or creation of related equity
                 if symbol_data:
                     future = getattr(instance, 'future', None)
@@ -135,7 +135,7 @@ class SymbolSerializer(serializers.ModelSerializer):
                         future_serializer.save()
                     else:
                         raise serializers.ValidationError(future_serializer.errors)
-            elif instance.security_type.value == "OPTION":
+            elif instance.security_type.value == "OPT":
                 # Delegate update or creation of related equity
                 if symbol_data:
                     option = getattr(instance, 'option', None)
@@ -151,7 +151,7 @@ class SymbolSerializer(serializers.ModelSerializer):
                         option_serializer.save()
                     else:
                         raise serializers.ValidationError(option_serializer.errors)
-            elif instance.security_type.value == "CRYPTOCURRENCY":
+            elif instance.security_type.value == "CRYPTO":
                 # Delegate update or creation of related equity
                 if symbol_data:
                     cryptocurrency = getattr(instance, 'cryptocurrency', None)
@@ -167,7 +167,7 @@ class SymbolSerializer(serializers.ModelSerializer):
                         cryptocurrency_serializer.save()
                     else:
                         raise serializers.ValidationError(cryptocurrency_serializer.errors)
-            elif instance.security_type.value == "INDEX":
+            elif instance.security_type.value == "IND":
                 # Delegate update or creation of related equity
                 if symbol_data:
                     index = getattr(instance, 'index', None)
