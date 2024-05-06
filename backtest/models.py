@@ -21,7 +21,7 @@ class Trade(models.Model):
     backtest = models.ForeignKey(Backtest, related_name='trades', on_delete=models.CASCADE)
     trade_id = models.CharField(max_length=100)  
     leg_id = models.CharField(max_length=100)    
-    timestamp = models.BigIntegerField()
+    timestamp = models.BigIntegerField(null=True, blank=True)
     ticker = models.CharField(max_length=50)     
     quantity = models.DecimalField(max_digits=10, decimal_places=4)
     price = models.DecimalField(max_digits=10, decimal_places=4)
@@ -31,7 +31,7 @@ class Trade(models.Model):
 
 class Signal(models.Model):
     backtest = models.ForeignKey(Backtest, related_name='signals', on_delete=models.CASCADE)
-    timestamp = models.BigIntegerField()
+    timestamp = models.BigIntegerField(null=True, blank=True)
 
 class TradeInstruction(models.Model):
     signal = models.ForeignKey(Signal, related_name='trade_instructions', on_delete=models.CASCADE)
@@ -68,7 +68,7 @@ class StaticStats(models.Model):
 
 class TimeseriesStats(models.Model):
     backtest = models.ForeignKey(Backtest, related_name='timeseries_stats', on_delete=models.CASCADE)
-    timestamp = models.BigIntegerField()
+    timestamp = models.BigIntegerField(null=True, blank=True)
     equity_value = models.DecimalField(max_digits=15, decimal_places=2, default=0.0)
     period_return = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
     cumulative_return = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)

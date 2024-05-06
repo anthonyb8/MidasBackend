@@ -17,7 +17,7 @@ class LiveSession(models.Model):
 
 class Signal(models.Model):
     live_session = models.ForeignKey(LiveSession, related_name='signals', on_delete=models.CASCADE)
-    timestamp = models.BigIntegerField()
+    timestamp = models.BigIntegerField(null=True, blank=True)
 
 class TradeInstruction(models.Model):
     signal = models.ForeignKey(Signal, related_name='trade_instructions', on_delete=models.CASCADE)
@@ -29,7 +29,7 @@ class TradeInstruction(models.Model):
 
 class Trade(models.Model):
     live_session = models.ForeignKey(LiveSession, related_name='trades', on_delete=models.CASCADE)   
-    timestamp = models.BigIntegerField()
+    timestamp = models.BigIntegerField(null=True, blank=True)
     ticker = models.CharField(max_length=50)     
     quantity = models.DecimalField(max_digits=10, decimal_places=4)
     price = models.DecimalField(max_digits=10, decimal_places=4)
