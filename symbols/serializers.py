@@ -216,13 +216,13 @@ class EquitySerializer(serializers.ModelSerializer):
 class FutureSerializer(serializers.ModelSerializer):
     venue = serializers.SlugRelatedField(slug_field="value", queryset=Venue.objects.all(), required=False)
     currency = serializers.SlugRelatedField(slug_field="value", queryset=Currency.objects.all(), required=False)
-    # industry = serializers.SlugRelatedField(slug_field="value", queryset=Industry.objects.all(), required=False)
+    industry = serializers.SlugRelatedField(slug_field="value", queryset=Industry.objects.all(), required=False)
     contract_units = serializers.SlugRelatedField(slug_field="value", queryset=ContractUnits.objects.all(), required=False)
     symbol = serializers.PrimaryKeyRelatedField(queryset=Symbol.objects.all())
 
     class Meta:
         model = Future
-        fields = ['symbol', 'product_code', 'product_name', 'venue', 'currency', 'contract_size', 'contract_units', 'tick_size', 'min_price_fluctuation', 'continuous']
+        fields = ['symbol', 'product_code', 'product_name', 'venue', 'currency','industry', 'contract_size', 'contract_units', 'tick_size', 'min_price_fluctuation', 'continuous']
 
     def create(self, validated_data):
         # Create the Future instance using validated data
@@ -235,6 +235,7 @@ class FutureSerializer(serializers.ModelSerializer):
         instance.product_name = validated_data.get('product_name', instance.product_name)
         instance.venue = validated_data.get('venue', instance.venue)
         instance.currency = validated_data.get('currency', instance.currency)
+        instance.industry = validated_data.get('industry', instance.industry)
         instance.contract_size = validated_data.get('contract_size', instance.contract_size)
         instance.contract_units = validated_data.get('contract_units', instance.contract_units)
         instance.tick_size = validated_data.get('tick_size', instance.tick_size)

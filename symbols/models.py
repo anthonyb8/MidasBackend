@@ -44,11 +44,6 @@ class Symbol(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def save(self, *args, **kwargs):
-        if self.security_type == 'STOCK':
-            self.ticker = self.ticker.upper()
-        super().save(*args, **kwargs)
-
     class Meta:
         unique_together = ('ticker', 'security_type')
     
