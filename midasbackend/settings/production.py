@@ -47,10 +47,9 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': LOGS_DIR / 'production.log',
+        'console': {
+            'level': 'DEBUG',  # Adjust as necessary
+            'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
         'mail_admins': {
@@ -60,12 +59,12 @@ LOGGING = {
         },
     },
     'root': {
-        'handlers': ['file'],
+        'handlers': ['console'],
         'level': 'DEBUG',
     },
     'loggers': {
         'django': {
-            'handlers': ['file', 'mail_admins'],
+            'handlers': ['console', 'mail_admins'],
             'level': 'ERROR',
             'propagate': True,
         },
