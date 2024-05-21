@@ -17,16 +17,16 @@ class StaticStatsSerializer(serializers.ModelSerializer):
                     'net_profit', 'total_return','max_drawdown','annual_standard_deviation','ending_equity', 
                     'total_fees', 'total_trades', "num_winning_trades", "num_lossing_trades", "avg_win_percent", 
                     "avg_loss_percent","percent_profitable", "profit_and_loss", "profit_factor", "avg_trade_profit", 
-                     'sortino_ratio'
+                     'sortino_ratio', 'sharpe_ratio'
                 ]
         
 class RegressionAnalysisSerializer(serializers.ModelSerializer):
     class Meta:
         model = RegressionAnalysis
         fields = [ 
-                    "r_squared", "p_value_alpha","p_value_beta", "risk_free_rate", "alpha", "beta", "sharpe_ratio", 
-                    "annualized_return", "market_contribution", "idiosyncratic_contribution", "total_contribution",
-                    "annualized_volatility", "market_volatility", "idiosyncratic_volatility", "total_volatility", 
+                    "r_squared", "p_value_alpha","p_value_beta", "risk_free_rate", "alpha", "beta",
+                     "market_contribution", "idiosyncratic_contribution", "total_contribution",
+                     "market_volatility", "idiosyncratic_volatility", "total_volatility", 
                     "portfolio_dollar_beta", "market_hedge_nmv"
                 ]
 
