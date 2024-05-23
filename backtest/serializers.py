@@ -14,10 +14,11 @@ class StaticStatsSerializer(serializers.ModelSerializer):
     class Meta:
         model = StaticStats
         fields = [
-                    'net_profit', 'total_return','max_drawdown','annual_standard_deviation','ending_equity', 
-                    'total_fees', 'total_trades', "num_winning_trades", "num_lossing_trades", "avg_win_percent", 
-                    "avg_loss_percent","percent_profitable", "profit_and_loss", "profit_factor", "avg_trade_profit", 
-                     'sortino_ratio', 'sharpe_ratio'
+                    'net_profit', 'total_fees', 'ending_equity', "avg_trade_profit", 
+                    'total_return','annual_standard_deviation_percentage', 'max_drawdown_percentage',
+                    "avg_win_percentage", "avg_loss_percentage","percent_profitable",
+                    'total_trades', "number_winning_trades", "number_losing_trades", "profit_and_loss_ratio", 
+                    "profit_factor", 'sortino_ratio', 'sharpe_ratio'
                 ]
         
 class RegressionAnalysisSerializer(serializers.ModelSerializer):

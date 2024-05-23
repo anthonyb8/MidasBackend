@@ -43,28 +43,23 @@ class TradeInstruction(models.Model):
 
 class StaticStats(models.Model):
     backtest = models.ForeignKey(Backtest, related_name='static_stats', on_delete=models.CASCADE)
-    # General Stats
     net_profit = models.FloatField(null=True)
-    total_return = models.FloatField(null=True)
-    max_drawdown = models.FloatField(null=True)
-    annual_standard_deviation = models.FloatField(null=True)
-    ending_equity = models.FloatField(null=True)
     total_fees = models.FloatField(null=True)
-    # Trade Stats
-    total_trades = models.IntegerField(null=True)
-    num_winning_trades = models.IntegerField(null=True)
-    num_lossing_trades = models.IntegerField(null=True)
-    avg_win_percent = models.FloatField(null=True)
-    avg_loss_percent = models.FloatField(null=True)
-    percent_profitable = models.FloatField(null=True)
-    profit_and_loss = models.FloatField(null=True)
-    profit_factor = models.FloatField(null=True)
+    ending_equity = models.FloatField(null=True)
     avg_trade_profit = models.FloatField(null=True)
+    total_return = models.FloatField(null=True)
+    annual_standard_deviation_percentage = models.FloatField(null=True)
+    max_drawdown_percentage = models.FloatField(null=True)
+    avg_win_percentage = models.FloatField(null=True)
+    avg_loss_percentage = models.FloatField(null=True)
+    percent_profitable = models.FloatField(null=True)
+    total_trades = models.IntegerField(null=True)
+    number_winning_trades = models.IntegerField(null=True)
+    number_losing_trades = models.IntegerField(null=True)
+    profit_and_loss_ratio = models.FloatField(null=True)
+    profit_factor = models.FloatField(null=True)
     sortino_ratio = models.FloatField(null=True)
-    # Benchmark Stats
     sharpe_ratio = models.FloatField(null=True)
-    # alpha = models.FloatField(null=True)
-    # beta = models.FloatField(null=True)
 
 class TimeseriesStats(models.Model):
     backtest = models.ForeignKey(Backtest, related_name='timeseries_stats', on_delete=models.CASCADE)
