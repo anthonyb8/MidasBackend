@@ -3,13 +3,11 @@ from django.db import transaction
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from symbols.models import Symbol
-from market_data.models import BarData
-from market_data.serializers import BarDataSerializer
-from .services import create_backtest, get_price_data
-from .models import Backtest, StaticStats, TimeseriesStats, Trade, Signal, TradeInstruction, RegressionAnalysis
+from .services import create_backtest, get_price_data, get_regression_data
+from .models import Backtest, StaticStats, TimeseriesStats, Trade, Signal, TradeInstruction
 
 logger = logging.getLogger()
+
 class StaticStatsSerializer(serializers.ModelSerializer):
     class Meta:
         model = StaticStats
@@ -21,16 +19,6 @@ class StaticStatsSerializer(serializers.ModelSerializer):
                     "profit_factor", 'sortino_ratio', 'sharpe_ratio'
                 ]
         
-class RegressionAnalysisSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RegressionAnalysis
-        fields = [ 
-                    "r_squared", "p_value_alpha","p_value_beta", "risk_free_rate", "alpha", "beta",
-                     "market_contribution", "idiosyncratic_contribution", "total_contribution",
-                     "market_volatility", "idiosyncratic_volatility", "total_volatility", 
-                    "portfolio_dollar_beta", "market_hedge_nmv"
-                ]
-
 class TimeseriesStatsSerializer(serializers.ModelSerializer):
     class Meta:
         model = TimeseriesStats
@@ -79,10 +67,10 @@ class BacktestSerializer(serializers.ModelSerializer):
     parameters = BacktestListSerializer(write_only=True)
     timeseries_stats = TimeseriesStatsSerializer(many=True)
     static_stats = StaticStatsSerializer(many=True)
-    regression_stats = RegressionAnalysisSerializer(many=True)
     trades = TradeSerializer(many=True)
     signals = SignalSerializer(many=True)
-    price_data = BarDataSerializer(read_only=True)
+    price_data = serializers.SerializerMethodField()
+    regression_stats = serializers.SerializerMethodField()
 
     class Meta:
         model = Backtest
@@ -123,6 +111,12 @@ class BacktestSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(f"Update failed for unexpected reasons: {e}")
 
     # GET
+    def get_price_data(self, obj):
+        return get_price_data(obj)
+
+    def get_regression_stats(self, obj):
+        return get_regression_data(obj)
+    
     def to_representation(self, instance):
         logger.info(f"Retrieving a Backtest instance with ID: {instance.id}")
         try:
@@ -139,7 +133,8 @@ class BacktestSerializer(serializers.ModelSerializer):
                 "capital": instance.capital,
                 "created_at": instance.created_at #.isoformat(),
             }
-            data['price_data'] = get_price_data(instance)
+            data['price_data'] = self.get_price_data(instance)
+            data['regression_stats'] = self.get_regression_stats(instance)
             logger.info(f"Successfully retrieved Backtest instance with ID: {instance.id}")
             return data
         except Exception as e:

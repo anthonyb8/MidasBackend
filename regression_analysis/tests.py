@@ -3,13 +3,11 @@ from decimal import Decimal
 from django.urls import reverse
 from rest_framework import status
 from account.models import CustomUser
-from .models import Backtest as Backtest_model
+from .models import RegressionAnalysis
 from symbols.models import Symbol, SecurityType
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient, APITestCase
 from market_data.models import BarData, QuoteData, Symbol
-
-# TODO: test options/cryptocurrency models
 
 class Base(APITestCase):
     def setUp(self):
@@ -21,14 +19,14 @@ class Base(APITestCase):
         self.token = Token.objects.create(user=self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
-class Backtest(Base):
+class Regression(Base):
     def setUp(self):
         super().setUp()
 
         # url
-        self.url="/api/backtest/"
+        self.url="/api/regression_analysis/"
 
-        # # Create an asset class instance
+        # Create an asset class instance
         self.ticker="AAPL"
         self.security_type = SecurityType.objects.create(value="STOCK")
         self.symbol = Symbol.objects.create(ticker=self.ticker, security_type=self.security_type)
@@ -40,7 +38,6 @@ class Backtest(Base):
                                                     close=100.99999,
                                                     volume=100.99999,
                                                     )
-        
         self.backtest_data={
                             "parameters": {
                                 "strategy_name": "cointegrationzscore", 
@@ -50,7 +47,7 @@ class Backtest(Base):
                                 "train_end": 1704893000, 
                                 "test_start": 1704903000, 
                                 "test_end": 1705903000, 
-                                "tickers": ['AAPL'], 
+                                "tickers": [self.ticker], 
                                 "benchmark": ["^GSPC"]
                             },
                             "static_stats": [{
@@ -121,78 +118,100 @@ class Backtest(Base):
                                 }]
                             }]
                             }
-        response = self.client.post(self.url, data=self.backtest_data, format='json')
+
+        response = self.client.post("/api/backtest/", data=self.backtest_data, format='json')
         self.backtest_id = response.data['id']
 
-    def test_get_backtest_list(self):
+        # Mock Data
+        self.regression_data={
+                                "backtest":self.backtest_id,
+                                "r_squared": "1.0", 
+                                "p_value_alpha": "0.5", 
+                                "p_value_beta": "0.09", 
+                                "risk_free_rate": "0.01", 
+                                "alpha": "16.4791", 
+                                "beta": "-66.6633", 
+                                # "annualized_return": "39.0001", 
+                                "market_contribution": "-0.498",
+                                "idiosyncratic_contribution": "0.66319",
+                                "total_contribution": "0.164998", 
+                                # "annualized_volatility": "3.7003", 
+                                "market_volatility": "-0.25608",
+                                "idiosyncratic_volatility": "7.85876", 
+                                "total_volatility": "0.23608", 
+                                "portfolio_dollar_beta": "-8862.27533", 
+                                "market_hedge_nmv": "88662.2533"
+                            }
+        
+    def test_create(self):
         # test
-        response = self.client.get(self.url)
+        response = self.client.post(self.url, data=self.regression_data, format='json')
 
         # validate
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('id', response.data[0])
-        self.assertIn('strategy_name', response.data[0])
-        self.assertIn('tickers', response.data[0])
-        self.assertIn('benchmark', response.data[0])
-        self.assertIn('data_type', response.data[0])
-        self.assertIn('train_start', response.data[0])
-        self.assertIn('test_start', response.data[0])
-        self.assertIn('capital', response.data[0])
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(RegressionAnalysis.objects.count(), 1)
 
-    def test_get_backtest_by_id(self):
+    def test_create_duplicate(self):
+        # set-up
+        self.client.post(self.url, data=self.regression_data, format='json')
+
+        # test
+        with self.assertRaises(Exception):
+            response = self.client.post(self.url, data=self.regression_data, format='json')
+
+    def test_get(self):
+        # set-up
+        self.client.post(self.url, data=self.regression_data, format='json')
         url = f"{self.url}{self.backtest_id}/"
+
         # test
         response = self.client.get(url)
 
         # validate
         self.assertEqual(response.status_code, 200)
-        self.assertIn('id', response.data)
-        self.assertIn('parameters', response.data)
-        self.assertIn('static_stats', response.data)
-        self.assertIn('timeseries_stats', response.data)
-        self.assertIn('signals', response.data)
-        self.assertIn('trades', response.data)
-        self.assertIn('regression_stats', response.data)
+        self.assertIn('backtest', response.data)
+        self.assertIn('r_squared', response.data)
+        self.assertIn('alpha', response.data)
+        self.assertIn('p_value_alpha', response.data)
+        self.assertIn('beta', response.data)
+        self.assertIn('p_value_beta', response.data)
+        self.assertIn('risk_free_rate', response.data)
+        self.assertIn('market_contribution', response.data)
+        self.assertIn('idiosyncratic_contribution', response.data)
+        self.assertIn('market_volatility', response.data)
+        self.assertIn('idiosyncratic_volatility', response.data)
+        self.assertIn('total_volatility', response.data)
+        self.assertIn('portfolio_dollar_beta', response.data)
+        self.assertIn('market_hedge_nmv', response.data)
 
-    def test_create_backtest(self):
-        # test
-        response = self.client.post(self.url, data=self.backtest_data, format='json')
-
-        # validate
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Backtest_model.objects.count(), 2)
-
-    def test_delete_backtest(self):
+    def test_delete(self):
+        # set-up
+        self.client.post(self.url, data=self.regression_data, format='json')
         url = f"{self.url}{self.backtest_id}/"
-        
+
         # test
         response = self.client.delete(url)
 
         # validate
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Backtest_model.objects.count(), 0)
+        self.assertEqual(RegressionAnalysis.objects.count(), 0)
 
-    def test_update_backtest(self):
-        data = {
-                "parameters": {
-                                "strategy_name": "cnothing", 
-                                "capital": 100000, 
-                                "data_type": "BAR", 
-                                "train_start": 1704862800, 
-                                "train_end": 1704893000, 
-                                "test_start": 1704903000, 
-                                "test_end": 1705903000, 
-                                "tickers": ['AAPL'], 
-                                "benchmark": ["XXXt"]
-                            }
-        }
-
+    def test_update(self):
+        # set-up
+        self.client.post(self.url, data=self.regression_data, format='json')
         url = f"{self.url}{self.backtest_id}/"
+        updated_alpha = 100.00
+        self.regression_data["alpha"] = updated_alpha
 
         # test
-        response = self.client.patch(url, data, format='json')
+        response = self.client.put(url, data=self.regression_data, format='json')
 
         # validate
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Backtest_model.objects.count(), 1)
-        self.assertEqual(Backtest_model.objects.last().benchmark, ["XXXt"])
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('backtest', response.data)
+        self.assertIn('r_squared', response.data)
+        self.assertEqual(response.data['alpha'],"100.00000000")
+
+
+
+    

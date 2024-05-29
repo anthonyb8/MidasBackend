@@ -10,5 +10,6 @@ urlpatterns = [
         path("", include('backtest.urls')),
         path("", include('live.urls')),
         path("", include('live_session.urls')),
+        path("", include('regression_analysis.urls')),
     ])),
 ]

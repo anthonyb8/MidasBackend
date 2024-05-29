@@ -2,10 +2,12 @@ import logging
 from django.db import transaction
 from django.core.exceptions import ValidationError
 
-from .models import Backtest, StaticStats, TimeseriesStats, Trade, Signal, TradeInstruction, RegressionAnalysis
-from market_data.serializers import BarDataSerializer
-from market_data.models import BarData
 from symbols.models import Symbol
+from market_data.models import BarData
+from market_data.serializers import BarDataSerializer
+from regression_analysis.models import RegressionAnalysis
+from regression_analysis.serializers import RegressionAnalysisSerializer
+from .models import Backtest, StaticStats, TimeseriesStats, Trade, Signal, TradeInstruction
 
 logger = logging.getLogger()
 
@@ -98,3 +100,16 @@ def get_price_data(backtest_instance):
     except Exception as e:
         logger.exception(f"Error serializing price data for backtest {backtest_instance.id}: {str(e)}")
         return []
+
+def get_regression_data(backtest_instance):
+    try:
+        regression_data = RegressionAnalysis.objects.get(backtest=backtest_instance)
+        serializer = RegressionAnalysisSerializer(regression_data)
+        return serializer.data
+    except RegressionAnalysis.DoesNotExist:
+        logger.warning(f"No regression data found for backtest {backtest_instance.id}")
+        return []
+    except Exception as e:
+        logger.exception(f"Error serializing regression data for backtest {backtest_instance.id}: {str(e)}")
+        return []
+
