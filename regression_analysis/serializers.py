@@ -8,8 +8,9 @@ class RegressionAnalysisSerializer(serializers.ModelSerializer):
     class Meta:
         model = RegressionAnalysis
         fields = [ 
-                    "backtest","r_squared", "p_value_alpha","p_value_beta", "risk_free_rate", "alpha", "beta",
-                     "market_contribution", "idiosyncratic_contribution", "total_contribution",
-                     "market_volatility", "idiosyncratic_volatility", "total_volatility", 
-                    "portfolio_dollar_beta", "market_hedge_nmv"
+                    "backtest", "risk_free_rate", "r_squared", "adjusted_r_squared", "RMSE", "MAE", "f_statistic",
+                    "f_statistic_p_value", "durbin_watson", "jarque_bera", "jarque_bera_p_value", "condition_number",
+                    "vif", "alpha", "p_value_alpha", "beta", "p_value_beta", "total_contribution", "systematic_contribution",
+                    "idiosyncratic_contribution", "total_volatility", "systematic_volatility", "idiosyncratic_volatility", "residuals"
                 ]
+        

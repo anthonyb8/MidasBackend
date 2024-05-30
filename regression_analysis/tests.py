@@ -145,22 +145,29 @@ class Regression(Base):
         # Mock Data
         self.regression_data={
                                 "backtest":self.backtest_id,
-                                "r_squared": "1.0", 
-                                "p_value_alpha": "0.5", 
-                                "p_value_beta": "0.09", 
-                                "risk_free_rate": "0.01", 
-                                "alpha": "16.4791", 
-                                "beta": "-66.6633", 
-                                # "annualized_return": "39.0001", 
-                                "market_contribution": "-0.498",
-                                "idiosyncratic_contribution": "0.66319",
-                                "total_contribution": "0.164998", 
-                                # "annualized_volatility": "3.7003", 
-                                "market_volatility": "-0.25608",
-                                "idiosyncratic_volatility": "7.85876", 
-                                "total_volatility": "0.23608", 
-                                "portfolio_dollar_beta": "-8862.27533", 
-                                "market_hedge_nmv": "88662.2533"
+                                "risk_free_rate":0.02,
+                                "r_squared":0.95,
+                                "adjusted_r_squared":0.94,
+                                "RMSE":0.01,
+                                "MAE":0.02,
+                                "f_statistic":50.0,
+                                "f_statistic_p_value":0.0001,
+                                "durbin_watson":2.0,
+                                "jarque_bera":5.0,
+                                "jarque_bera_p_value":0.05,
+                                "condition_number":10.0,
+                                "vif":{'beta1': 1.5, 'beta2': 2.0},
+                                "alpha":0.05,
+                                "p_value_alpha":0.01,
+                                "beta":{'beta1': 1.2, 'beta2': 0.8},
+                                "p_value_beta":{'beta1': 0.05, 'beta2': 0.01},
+                                "total_contribution":0.5,
+                                "systematic_contribution":0.3,
+                                "idiosyncratic_contribution":0.2,
+                                "total_volatility":0.15,
+                                "systematic_volatility":0.1,
+                                "idiosyncratic_volatility":0.05,
+                                "residuals":[0.1, -0.2, 0.05, -0.1]
                             }
         
     def test_create(self):
@@ -196,13 +203,11 @@ class Regression(Base):
         self.assertIn('beta', response.data)
         self.assertIn('p_value_beta', response.data)
         self.assertIn('risk_free_rate', response.data)
-        self.assertIn('market_contribution', response.data)
+        self.assertIn('systematic_contribution', response.data)
         self.assertIn('idiosyncratic_contribution', response.data)
-        self.assertIn('market_volatility', response.data)
+        self.assertIn('systematic_volatility', response.data)
         self.assertIn('idiosyncratic_volatility', response.data)
         self.assertIn('total_volatility', response.data)
-        self.assertIn('portfolio_dollar_beta', response.data)
-        self.assertIn('market_hedge_nmv', response.data)
 
     def test_delete(self):
         # set-up
