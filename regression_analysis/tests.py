@@ -69,7 +69,27 @@ class Regression(Base):
                                 "sortino_ratio": 0.0,
                                 "sharpe_ratio": 10.72015,
                             }],
-                            "timeseries_stats": [
+                            "period_timeseries_stats": [
+                                {
+                                    "timestamp": 1704903000,
+                                    "equity_value": 10000.0,
+                                    "percent_drawdown": 9.9, 
+                                    "cumulative_return": -0.09, 
+                                    "period_return": 79.9,
+                                    "daily_strategy_return": "0.330", 
+                                    "daily_benchmark_return": "0.00499"
+                                },
+                                {
+                                    "timestamp": 1704904000,
+                                    "equity_value": 10000.0,
+                                    "percent_drawdown": 9.9, 
+                                    "cumulative_return": -0.09, 
+                                    "period_return": 79.9,
+                                    "daily_strategy_return": "0.087", 
+                                    "daily_benchmark_return": "0.009"
+                                }
+                            ],
+                            "daily_timeseries_stats": [
                                 {
                                     "timestamp": 1704903000,
                                     "equity_value": 10000.0,

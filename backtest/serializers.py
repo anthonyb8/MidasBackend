@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from .services import create_backtest, get_price_data, get_regression_data
-from .models import Backtest, StaticStats, TimeseriesStats, Trade, Signal, TradeInstruction
+from .models import Backtest, StaticStats, Trade, Signal, TradeInstruction, PeriodTimeseriesStats, DailyTimeseriesStats
 
 logger = logging.getLogger()
 
@@ -19,10 +19,15 @@ class StaticStatsSerializer(serializers.ModelSerializer):
                     "profit_factor", 'sortino_ratio', 'sharpe_ratio'
                 ]
         
-class TimeseriesStatsSerializer(serializers.ModelSerializer):
+class PeriodTimeseriesStatsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = TimeseriesStats
-        fields = ['timestamp', 'equity_value', 'percent_drawdown', 'cumulative_return', 'period_return', 'daily_benchmark_return', 'daily_strategy_return']
+        model = PeriodTimeseriesStats
+        fields = ['timestamp', 'equity_value', 'percent_drawdown', 'cumulative_return', 'period_return']
+
+class DailyTimeseriesStatsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DailyTimeseriesStats
+        fields = ['timestamp', 'equity_value', 'percent_drawdown', 'cumulative_return', 'period_return']
 
 class TradeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -65,7 +70,8 @@ class BacktestListSerializer(serializers.ModelSerializer):
 
 class BacktestSerializer(serializers.ModelSerializer):
     parameters = BacktestListSerializer(write_only=True)
-    timeseries_stats = TimeseriesStatsSerializer(many=True)
+    period_timeseries_stats = PeriodTimeseriesStatsSerializer(many=True)
+    daily_timeseries_stats = DailyTimeseriesStatsSerializer(many=True)
     static_stats = StaticStatsSerializer(many=True)
     trades = TradeSerializer(many=True)
     signals = SignalSerializer(many=True)
@@ -74,7 +80,7 @@ class BacktestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Backtest
-        fields = ['id', 'parameters', 'static_stats', 'regression_stats', 'trades', 'timeseries_stats', 'signals', 'price_data']
+        fields = ['id', 'parameters', 'static_stats', 'regression_stats', 'trades', 'daily_timeseries_stats', 'period_timeseries_stats', 'signals', 'price_data']
         
     def validate(self, data):
         logger.info(f"Validating data : {data}")

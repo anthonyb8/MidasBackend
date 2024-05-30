@@ -60,12 +60,18 @@ class StaticStats(models.Model):
     sortino_ratio = models.FloatField(null=True)
     sharpe_ratio = models.FloatField(null=True)
 
-class TimeseriesStats(models.Model):
-    backtest = models.ForeignKey(Backtest, related_name='timeseries_stats', on_delete=models.CASCADE)
+class PeriodTimeseriesStats(models.Model):
+    backtest = models.ForeignKey(Backtest, related_name='period_timeseries_stats', on_delete=models.CASCADE)
     timestamp = models.BigIntegerField(null=True, blank=True)
     equity_value = models.DecimalField(max_digits=15, decimal_places=2, default=0.0)
     period_return = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
     cumulative_return = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
     percent_drawdown = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
-    daily_benchmark_return = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
-    daily_strategy_return = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
+
+class DailyTimeseriesStats(models.Model):
+    backtest = models.ForeignKey(Backtest, related_name='daily_timeseries_stats', on_delete=models.CASCADE)
+    timestamp = models.BigIntegerField(null=True, blank=True)
+    equity_value = models.DecimalField(max_digits=15, decimal_places=2, default=0.0)
+    period_return = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
+    cumulative_return = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)
+    percent_drawdown = models.DecimalField(max_digits=15, decimal_places=6, default=0.0)

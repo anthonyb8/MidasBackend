@@ -7,7 +7,7 @@ from market_data.models import BarData
 from market_data.serializers import BarDataSerializer
 from regression_analysis.models import RegressionAnalysis
 from regression_analysis.serializers import RegressionAnalysisSerializer
-from .models import Backtest, StaticStats, TimeseriesStats, Trade, Signal, TradeInstruction
+from .models import Backtest, StaticStats, Trade, Signal, TradeInstruction, PeriodTimeseriesStats, DailyTimeseriesStats
 
 logger = logging.getLogger()
 
@@ -20,10 +20,11 @@ def create_backtest(validated_data):
             # Extract nested data
             parameters = validated_data.pop('parameters', {})
             static_stats_data = validated_data.pop('static_stats', [])
-            regression_data = validated_data.pop('regression_stats', [])
-            timeseries_stats_data = validated_data.pop('timeseries_stats', [])
+            daily_timeseries_stats_data = validated_data.pop('daily_timeseries_stats', [])
+            period_timeseries_stats_data = validated_data.pop('period_timeseries_stats', [])
             trades_data = validated_data.pop('trades', [])
             signals_data = validated_data.pop('signals', [])
+            # regression_data = validated_data.pop('regression_stats', [])
 
             # Create the Backtest instance
             backtest = Backtest.objects.create(**parameters)
@@ -35,14 +36,18 @@ def create_backtest(validated_data):
             logger.info("Static stats created.")
             
             # Nested object creation for RegressionAnalysis
-            for stat_data in regression_data:
-                RegressionAnalysis.objects.create(backtest=backtest, **stat_data)
-            logger.info("Regression stats created.")
+            # for stat_data in regression_data:
+            #     RegressionAnalysis.objects.create(backtest=backtest, **stat_data)
+            # logger.info("Regression stats created.")
 
             # Nested object creation for TimeseriesStats
-            for stat_data in timeseries_stats_data:
-                TimeseriesStats.objects.create(backtest=backtest, **stat_data)
-            logger.info("Timeseries stats created.")
+            for data in period_timeseries_stats_data:
+                PeriodTimeseriesStats.objects.create(backtest=backtest, **data)
+            logger.info("Period timeseries stats created.")
+
+            for data in daily_timeseries_stats_data:
+                DailyTimeseriesStats.objects.create(backtest=backtest, **data)
+            logger.info("Daily timeseries stats created.")
 
             # Nested object creation for Trades
             for trade_data in trades_data:

@@ -4,9 +4,9 @@ from django.db import transaction
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import Backtest, StaticStats, TimeseriesStats, Trade, Signal
-from .serializers import (BacktestSerializer, StaticStatsSerializer, TradeSerializer, 
-                          TimeseriesStatsSerializer, SignalSerializer, BacktestListSerializer)
+from .models import Backtest, StaticStats, Trade, Signal, PeriodTimeseriesStats, DailyTimeseriesStats
+from .serializers import (BacktestSerializer, StaticStatsSerializer, TradeSerializer, SignalSerializer, 
+                          BacktestListSerializer, PeriodTimeseriesStatsSerializer, DailyTimeseriesStatsSerializer)
 
 logger = logging.getLogger()
 

@@ -72,7 +72,27 @@ class Backtest(Base):
                                 "sortino_ratio": 0.0,
                                 "sharpe_ratio": 10.72015,
                             }],
-                            "timeseries_stats": [
+                            "period_timeseries_stats": [
+                                {
+                                    "timestamp": 1704903000,
+                                    "equity_value": 10000.0,
+                                    "percent_drawdown": 9.9, 
+                                    "cumulative_return": -0.09, 
+                                    "period_return": 79.9,
+                                    "daily_strategy_return": "0.330", 
+                                    "daily_benchmark_return": "0.00499"
+                                },
+                                {
+                                    "timestamp": 1704904000,
+                                    "equity_value": 10000.0,
+                                    "percent_drawdown": 9.9, 
+                                    "cumulative_return": -0.09, 
+                                    "period_return": 79.9,
+                                    "daily_strategy_return": "0.087", 
+                                    "daily_benchmark_return": "0.009"
+                                }
+                            ],
+                            "daily_timeseries_stats": [
                                 {
                                     "timestamp": 1704903000,
                                     "equity_value": 10000.0,
@@ -149,7 +169,8 @@ class Backtest(Base):
         self.assertIn('id', response.data)
         self.assertIn('parameters', response.data)
         self.assertIn('static_stats', response.data)
-        self.assertIn('timeseries_stats', response.data)
+        self.assertIn('period_timeseries_stats', response.data)
+        self.assertIn('daily_timeseries_stats', response.data)
         self.assertIn('signals', response.data)
         self.assertIn('trades', response.data)
         self.assertIn('regression_stats', response.data)
