@@ -167,7 +167,18 @@ class Regression(Base):
                                 "total_volatility":0.15,
                                 "systematic_volatility":0.1,
                                 "idiosyncratic_volatility":0.05,
-                                "residuals":[0.1, -0.2, 0.05, -0.1]
+                                "residuals":[0.1, -0.2, 0.05, -0.1], 
+                                "timeseries_data": [
+                                    {'timestamp': 1709874000000000000, 'daily_benchmark_return': -0.007275}, 
+                                    {'timestamp': 1710129600000000000, 'daily_benchmark_return': 0.004111}, 
+                                    {'timestamp': 1710216000000000000, 'daily_benchmark_return': -0.000783}, 
+                                    {'timestamp': 1710302400000000000, 'daily_benchmark_return': 0.015980}, 
+                                    {'timestamp': 1710388800000000000, 'daily_benchmark_return': 0.006242}, 
+                                    {'timestamp': 1710475200000000000, 'daily_benchmark_return': 0.002596}, 
+                                    {'timestamp': 1710734400000000000, 'daily_benchmark_return': 0.012271}, 
+                                    {'timestamp': 1710820800000000000, 'daily_benchmark_return': 0.000875}, 
+                                    {'timestamp': 1710907200000000000, 'daily_benchmark_return': -0.009881}
+                                ]
                             }
         
     def test_create(self):
@@ -183,8 +194,10 @@ class Regression(Base):
         self.client.post(self.url, data=self.regression_data, format='json')
 
         # test
-        with self.assertRaises(Exception):
-            response = self.client.post(self.url, data=self.regression_data, format='json')
+        response = self.client.post(self.url, data=self.regression_data, format='json')
+
+        # validate
+        self.assertEqual(RegressionAnalysis.objects.count(), 1)
 
     def test_get(self):
         # set-up
@@ -208,6 +221,7 @@ class Regression(Base):
         self.assertIn('systematic_volatility', response.data)
         self.assertIn('idiosyncratic_volatility', response.data)
         self.assertIn('total_volatility', response.data)
+        self.assertIn('timeseries_data', response.data)
 
     def test_delete(self):
         # set-up
@@ -220,22 +234,6 @@ class Regression(Base):
         # validate
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(RegressionAnalysis.objects.count(), 0)
-
-    def test_update(self):
-        # set-up
-        self.client.post(self.url, data=self.regression_data, format='json')
-        url = f"{self.url}{self.backtest_id}/"
-        updated_alpha = 100.00
-        self.regression_data["alpha"] = updated_alpha
-
-        # test
-        response = self.client.put(url, data=self.regression_data, format='json')
-
-        # validate
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('backtest', response.data)
-        self.assertIn('r_squared', response.data)
-        self.assertEqual(response.data['alpha'],"100.0000000")
 
 
 

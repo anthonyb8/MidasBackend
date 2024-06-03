@@ -31,3 +31,11 @@ class RegressionAnalysis(models.Model):
     systematic_volatility = models.DecimalField(max_digits=10, decimal_places=7)
     idiosyncratic_volatility = models.DecimalField(max_digits=10, decimal_places=7)
     residuals = models.JSONField(default=list, null=True)
+
+
+class TimeSeriesData(models.Model):
+    regression_analysis = models.ForeignKey(RegressionAnalysis, related_name='timeseries_data', on_delete=models.CASCADE)
+    timestamp = models.BigIntegerField(null=True, blank=True)
+    daily_benchmark_return = models.DecimalField(max_digits=15, decimal_places=6)
+    # strategy_daily_return = models.DecimalField(max_digits=15, decimal_places=6)
+
