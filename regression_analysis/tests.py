@@ -235,7 +235,7 @@ class Regression(Base):
         self.assertEqual(response.status_code, 200)
         self.assertIn('backtest', response.data)
         self.assertIn('r_squared', response.data)
-        self.assertEqual(response.data['alpha'],"100.00000000")
+        self.assertEqual(response.data['alpha'],"100.0000000")
 
 
 
