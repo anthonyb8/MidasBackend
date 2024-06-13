@@ -118,8 +118,8 @@ class Backtest(Base):
                                 "timestamp": 1704903000, 
                                 "ticker": "AAPL", 
                                 "quantity": 4, 
-                                "price": 130.74, 
-                                "cost": -522.96, 
+                                "avg_price": 130.74, 
+                                "trade_value": -522.96, 
                                 "action": "BUY", 
                                 "fees": 0.0
                             }],
