@@ -14,9 +14,9 @@ logger = logging.getLogger()
 class AccountSummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = AccountSummary
-        fields = ["currency", "start_timestamp", "start_BuyingPower", "start_ExcessLiquidity", "start_FullAvailableFunds", "start_FullInitMarginReq", "start_FullMaintMarginReq", 
-                  "start_FuturesPNL", "start_NetLiquidation", "start_TotalCashBalance", "start_UnrealizedPnL", "end_timestamp", "end_BuyingPower", "end_ExcessLiquidity", "end_FullAvailableFunds",
-                  "end_FullInitMarginReq", "end_FullMaintMarginReq", "end_FuturesPNL", "end_NetLiquidation", "end_TotalCashBalance", "end_UnrealizedPnL"]
+        fields = ["currency", "start_timestamp", "start_buying_power", "start_excess_liquidity", "start_full_available_funds", "start_full_init_margin_req", "start_full_maint_margin_req", 
+                  "start_futures_pnl", "start_net_liquidation", "start_total_cash_balance", "start_unrealized_pnl", "end_timestamp", "end_buying_power", "end_excess_liquidity", "end_full_available_funds",
+                  "end_full_init_margin_req", "end_full_maint_margin_req", "end_futures_pnl", "end_net_liquidation", "end_total_cash_balance", "end_unrealized_pnl"]
 
 class TradeSerializer(serializers.ModelSerializer):
     class Meta:
