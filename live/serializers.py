@@ -21,7 +21,7 @@ class AccountSummarySerializer(serializers.ModelSerializer):
 class TradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trade
-        fields = ['timestamp', 'ticker', 'quantity', 'price', 'cost', 'action', 'fees']
+        fields = ['timestamp', 'ticker', 'quantity', 'avg_price', 'trade_value', 'action', 'fees']
 
 class TradeInstructionSerializer(serializers.ModelSerializer):
     class Meta:

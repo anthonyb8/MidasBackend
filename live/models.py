@@ -32,10 +32,11 @@ class Trade(models.Model):
     timestamp = models.BigIntegerField(null=True, blank=True)
     ticker = models.CharField(max_length=50)     
     quantity = models.DecimalField(max_digits=10, decimal_places=4)
-    price = models.DecimalField(max_digits=10, decimal_places=4)
-    cost = models.DecimalField(max_digits=10, decimal_places=4)
+    avg_price = models.DecimalField(max_digits=10, decimal_places=4, default =0.0)
+    trade_value = models.DecimalField(max_digits=15, decimal_places=4, default = 0.0)
     action = models.CharField(max_length=10)  # Assuming 'direction' is a string like 'buy' or 'sell'
     fees =  models.DecimalField(max_digits=10, decimal_places=4)
+
 class AccountSummary(models.Model):
     live_session = models.ForeignKey(LiveSession, related_name='account_data', on_delete=models.CASCADE)
     currency = models.CharField(max_length=4)  # 'USD'

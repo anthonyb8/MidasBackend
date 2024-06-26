@@ -76,8 +76,23 @@ class LiveSessionTests(Base):
                                     }
                                 ], 
                                 "trades": [
-                                    {"timestamp": 1704903000, "ticker": "HE", "quantity": "1", "cumQty": "1", "price": "91.45", "AvPrice": "91.45", "action": "SELL", "cost": "0", "currency": "USD", "fees": "2.97"}, 
-                                    {"timestamp": 1704904000, "ticker": "ZC", "quantity": "1", "cumQty": "1", "price": "446.25", "AvPrice": "446.25", "action": "BUY", "cost": "0", "currency": "USD", "fees": "2.97"}
+                                    {
+                                        "timestamp": 1704903000, 
+                                        "ticker": "HE", 
+                                        "quantity": 1, 
+                                        "avg_price": 91.45, 
+                                        "action": "SELL", 
+                                        "trade_value": 948444, 
+                                        "fees": 2.97,
+                                    },
+                                    {
+                                        "timestamp": 1704904000, 
+                                        "ticker": "ZC", 
+                                        "quantity": 1,  
+                                        "avg_price": 446.25,                                        "action": "BUY", 
+                                        "trade_value": 234567, 
+                                        "fees": "2.97"
+                                    }
                                 ], 
                                 "account_data": [{
                                     "start_buying_power": "2557567.234", 
